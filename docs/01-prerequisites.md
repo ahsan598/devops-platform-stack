@@ -1,4 +1,4 @@
-# 📋 System Prerequisites & Environment Setup
+## 📋 System Prerequisites & Environment Setup
 
 Before provisioning tools and infrastructure, verify that your host environment (**Native Linux or Windows WSL2**) meets the necessary resource and system thresholds.
 
@@ -19,9 +19,7 @@ processors=4        # Limits CPU cores in WSL2
 swap=4GB            # Swap memory space
 localhostForwarding=true
 ```
-
 > Note for Native Linux Users: If you are running on native Ubuntu/Debian, skip Section 2 and proceed directly to system package updates.
-
 
 ### 3. Base Ubuntu/Linux Preparation
 Run these baseline system checks and update package indices in your terminal (Works on **Native Ubuntu 24.04 & WSL2**):
@@ -31,7 +29,8 @@ sudo apt update && sudo apt upgrade -y
 
 # Install Essential System Build Tools & Debugging Utilities
 sudo apt install -y \
-  build-essential curl wget git tree unzip ca-certificates software-properties-common \
+  build-essential ca-certificates software-properties-common \
+  curl wget git tree vim unzip jq less \
   iproute2 net-tools dnsutils traceroute tcpdump htop strace lsof
 
 # Verify Kernel and Ubuntu Version

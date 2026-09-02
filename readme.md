@@ -6,7 +6,7 @@ This repository serves as a central blueprint, organizing installation, configur
 
 > [!NOTE]
 > This setup is compatible with **Ubuntu/Debian-based** Linux distributions and **Windows via WSL2**.
-All installation workflows have been actively tested and verified on **Windows WSL2 running Ubuntu 24.04 LTS**. RHEL-based distributions (e.g., Rocky Linux, AlmaLinux, CentOS, Fedora) are not currently covered, as they utilize `dnf/yum` package managers instead of `apt`.
+All installation workflows have been actively tested and verified on **Windows WSL2 running Ubuntu 24.04 LTS**. **RHEL-based** distributions (e.g., **Rocky Linux, AlmaLinux, CentOS, Fedora**) are not currently covered, as they utilize `dnf/yum` package managers instead of `apt`.
 
 
 ## 📂 Repository Structure
