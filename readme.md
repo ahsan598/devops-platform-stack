@@ -4,8 +4,9 @@ An enterprise-grade, reproducible DevOps lab environment for learning, building,
 
 This repository serves as a central blueprint, organizing installation, configuration, verification, and cleanup workflows for each component.
 
-> **💻 OS Compatibility Note:**  
-> These installation workflows and setup steps are fully compatible with **native Linux distributions (Ubuntu/Debian)** as well as **Windows via WSL2**. While all configurations were actively tested and verified on a **Windows WSL2 (Ubuntu 24.04 LTS)** environment, the exact same commands apply seamlessly to native Linux environments.
+> [!NOTE]
+> This setup is compatible with **Ubuntu/Debian-based** Linux distributions and **Windows via WSL2**.
+All installation workflows have been actively tested and verified on **Windows WSL2 running Ubuntu 24.04 LTS**. RHEL-based distributions (e.g., Rocky Linux, AlmaLinux, CentOS, Fedora) are not currently covered, as they utilize `dnf/yum` package managers instead of `apt`.
 
 
 ## 📂 Repository Structure
@@ -62,7 +63,7 @@ devops-platform-stack/
 Ensure your local machine meets all hardware, WSL2, or Linux configuration requirements before starting the lab:
 ```sh
 # Clone the repository
-git clone https://github.com/<your-username>/devops-platform-stack.git
+git clone https://github.com/ahsan598/devops-platform-stack.git
 cd devops-platform-stack
 
 # View the prerequisites document in the terminal
