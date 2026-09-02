@@ -25,20 +25,20 @@ devops-platform-stack/
 ## 🛠️ Technology Stack Overview
 
 ### 💻 Application Development
-- **Java & Maven:** Enterprise backend stack.
-- **Node.js:** Modern frontend and microservices runtime.
-- **Python:** Automation scripting and data utilities.
+- **Java & Maven:** Enterprise backend runtime and build automation.
+- **Node.js & npm:** Modern frontend/microservices runtime and package manager.
+- **Python & pip:** Automation scripting, data utilities, and package manager.
 
 ### 🔄 CI/CD & Artifact Management
 - **Jenkins:** Core continuous integration and pipeline engine.
 - **Argo CD:** GitOps-driven continuous delivery for Kubernetes.
 - **Nexus Repository:** Private registry for binaries and artifacts.
-- **SonarQube:** Automated code quality and static security analysis (SAST).
+- **SonarQube & PostgreSQL:** Automated code quality analysis (SAST) backed by Postgres DB
 
 ### ⎈ Containerization & Orchestration
-- **Docker & Compose:** Local container runtime and multi-container setups.
-- **Kubernetes (Kind):** Local Kubernetes clusters running in Docker.
-- **Helm:** Package management for Kubernetes deployments.
+- **Docker, Compose & containerd:** Local container engine, multi-container orchestration, and core container runtime.
+- **Kubernetes (Kind):** Multi-node local Kubernetes clusters running over Docker.
+- **Helm & Kustomize:** Package management and declarative manifest customization for Kubernetes deployments.
 
 ### 📊 Observability & Core Infrastructure
 - **Prometheus & Metrics Server:** Infrastructure and application metric collection.
