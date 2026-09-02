@@ -1,4 +1,4 @@
-## 📋 System Prerequisites & Environment Setup
+# 📋 System Prerequisites & Environment Setup
 
 Before provisioning tools and infrastructure, verify that your host environment (**Native Linux or Windows WSL2**) meets the necessary resource and system thresholds.
 
