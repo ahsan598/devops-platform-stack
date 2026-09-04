@@ -5,7 +5,7 @@ An enterprise-grade, reproducible DevOps lab environment for learning, building,
 This repository serves as a central blueprint, organizing installation, configuration, verification, and cleanup workflows for each component.
 
 > [!NOTE]
-> This setup is compatible with **Ubuntu/Debian-based** Linux distributions and **Windows via WSL2**. All installation workflows have been actively tested and verified on **Windows WSL2 running Ubuntu 24.04 LTS**.
+> This setup is compatible with **Ubuntu/Debian-based** Linux distributions and **Windows via WSL2**. All installation workflows have been actively tested and verified on **AWS EC2 & Windows WSL2 running on Ubuntu 24.04 LTS**.
 >
 > **RHEL-based** distributions (e.g., **Rocky Linux, AlmaLinux, CentOS, Fedora**) are not currently covered, as they utilize `dnf/yum` package managers instead of `apt`.
 
@@ -13,13 +13,14 @@ This repository serves as a central blueprint, organizing installation, configur
 ## 📂 Repository Structure
 ```text
 devops-platform-stack/
-├── config/             # Configuration files for tools (Jenkins, Prometheus, etc.)
-├── deployments/        # Kubernetes manifests, Helm charts, and Compose files
-├── docs/               # Setup guides, verification steps, and lab documentation
-├── examples/           # Sample applications (Java, Node.js, Python)
-├── scripts/            # Automation, installation, and cleanup scripts
-├── .gitignore          # Git ignore rules
-└── README.md           # Main project documentation
+├── commands/               # Common CLI commands and operational references
+├── config/                 # Configuration files for platform tools and services
+├── deployments/            # Kubernetes manifests, Helm charts, and Compose files
+├── docs/                   # Setup guides, prerequisites, and verification steps
+├── examples/               # Sample applications for testing and validation
+├── scripts/                # Installation, automation, maintenance, and cleanup scripts
+├── .gitignore              # Git ignore rules
+└── README.md               # Main project documentation
 ```
 
 ## 🛠️ Technology Stack Overview

@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==========================="
+echo " Installing Docker, KIND, & K8s Tools"
+echo "==========================="
+
+# Update Package Index
+sudo apt update
+sudo apt install -y gnupg lsb-release
+
+# 1. Install Docker Engine
+DOCKER_VERSION="5:27.5.1-1~ubuntu.24.04~noble"
+echo "Installing Docker Engine ${DOCKER_VERSION}..."
+
+# Docker official GPG key
+sudo install -m 0755 -d /etc/apt/keyrings
+
+sudo curl -fsSL \
+  https://download.docker.com/linux/ubuntu/gpg \
+  -o /etc/apt/keyrings/docker.asc
+
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Docker official APT repository - Deb822 .sources format
+sudo tee /etc/apt/sources.list.d/docker.sources > /dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+sudo apt update
+sudo apt install -y \
+  docker-ce="${DOCKER_VERSION}" \
+  docker-ce-cli="${DOCKER_VERSION}" \
+  containerd.io \
+  docker-buildx-plugin \
+  docker-compose-plugin
+
+# Prevent accidental docker upgrades
+sudo apt-mark hold docker-ce docker-ce-cli
+
+# Enable and start docker
+sudo systemctl enable --now docker   
+
+# Add current user to docker group
+sudo usermod -aG docker "$USER"
+echo "Note: Log out and back in (or run 'newgrp docker') to use Docker without sudo."
+
+# 2. Install kubectl
+KUBECTL_VERSION="v1.34.2"
+echo "Installing kubectl ${KUBECTL_VERSION}..."
+curl -fsSLO \
+  "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+rm -f kubectl
+
+# 3. Install KIND
+KIND_VERSION="v0.30.0"
+echo "Installing KIND ${KIND_VERSION}..."
+curl -fsSLo \
+  kind \
+  "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-amd64"
+chmod +x kind
+sudo install -m 0755 kind /usr/local/bin/kind
+rm -f kind
+
+# 4. Install Helm
+HELM_VERSION="v3.17.3"
+echo "Installing Helm ${HELM_VERSION}..."
+wget -q \
+  "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz"
+
+tar -xzf \
+  "helm-${HELM_VERSION}-linux-amd64.tar.gz" \
+  linux-amd64/helm
+
+sudo install -m 0755 \
+  linux-amd64/helm \
+  /usr/local/bin/helm
+
+rm -rf \
+  linux-amd64 \
+  "helm-${HELM_VERSION}-linux-amd64.tar.gz"
+
+# Verify Installations
+echo "Container & K8s Tools Installed:"
+echo "Docker: $(docker --version)"
+echo "Docker Compose: $(docker compose version)"
+echo "Docker Buildx: $(docker buildx version)"
+echo "kubectl: $(kubectl version --client --short)"
+echo "KIND: $(kind --version)"
+echo "Helm: $(helm version --short)"
