@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "============================="
+echo "==============================================="
 echo " Installing Runtimes & Package Managers"
-echo "============================="
+echo "==============================================="
 
 # Update Package Index
 sudo apt update

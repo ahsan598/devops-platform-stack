@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=============================="
+echo "=============================================="
 echo " Installing Cloud, IaC & Security Tools"
-echo "=============================="
+echo "=============================================="
 
 # Update Package Index
 sudo apt update
