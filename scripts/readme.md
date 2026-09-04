@@ -8,8 +8,8 @@ chmod +x scripts/*.sh
 # Execute setup sequence
 ./scripts/install-core-tools.sh
 ./scripts/install-runtimes.sh
-./scripts/install-docker-k8s.sh
-./scripts/install-cloud-tools.sh
+./scripts/install-container-tools.sh
+./scripts/install-devops-tools.sh
 ```
 
 ### 📋 Note
