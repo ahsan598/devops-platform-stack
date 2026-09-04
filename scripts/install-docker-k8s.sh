@@ -5,11 +5,11 @@ echo "============================================="
 echo " Installing Docker, KIND, & K8s Tools"
 echo "============================================="
 
-# Update Package Index
+# 1. Update Package Index & Install Repo Prereqs
 sudo apt update
-sudo apt install -y gnupg lsb-release
+sudo apt install -y gnupg lsb-release curl wget
 
-# 1. Install Docker Engine
+# 2. Install Docker Engine
 DOCKER_VERSION="5:27.5.1-1~ubuntu.24.04~noble"
 echo "Installing Docker Engine ${DOCKER_VERSION}..."
 
@@ -41,16 +41,20 @@ sudo apt install -y \
   docker-compose-plugin
 
 # Prevent accidental docker upgrades
-sudo apt-mark hold docker-ce docker-ce-cli
+sudo apt-mark hold docker-ce docker-ce-cli containerd.io
 
-# Enable and start docker
-sudo systemctl enable --now docker   
+# Gracefully start Docker Service (WSL2 + Native Linux friendly)
+if command -v systemctl &>/dev/null && systemctl is-systemd-running &>/dev/null; then
+    sudo systemctl enable --now docker || true
+else
+    sudo service docker start || true
+fi
 
 # Add current user to docker group
 sudo usermod -aG docker "$USER"
 echo "Note: Log out and back in (or run 'newgrp docker') to use Docker without sudo."
 
-# 2. Install kubectl
+# 3. Install kubectl
 KUBECTL_VERSION="v1.34.2"
 echo "Installing kubectl ${KUBECTL_VERSION}..."
 curl -fsSLO \
@@ -58,7 +62,7 @@ curl -fsSLO \
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 rm -f kubectl
 
-# 3. Install KIND
+# 4. Install KIND
 KIND_VERSION="v0.30.0"
 echo "Installing KIND ${KIND_VERSION}..."
 curl -fsSLo \
@@ -68,7 +72,7 @@ chmod +x kind
 sudo install -m 0755 kind /usr/local/bin/kind
 rm -f kind
 
-# 4. Install Helm
+# 5. Install Helm
 HELM_VERSION="v3.17.3"
 echo "Installing Helm ${HELM_VERSION}..."
 wget -q \
@@ -86,11 +90,11 @@ rm -rf \
   linux-amd64 \
   "helm-${HELM_VERSION}-linux-amd64.tar.gz"
 
-# Verify Installations
+# 6. Verify Installations
 echo "Container & K8s Tools Installed:"
 echo "Docker: $(docker --version)"
 echo "Docker Compose: $(docker compose version)"
 echo "Docker Buildx: $(docker buildx version)"
-echo "kubectl: $(kubectl version --client --short)"
+echo "kubectl: $(kubectl version --client)"
 echo "KIND: $(kind --version)"
 echo "Helm: $(helm version --short)"
