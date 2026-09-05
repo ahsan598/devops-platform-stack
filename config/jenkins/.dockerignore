@@ -33,6 +33,6 @@ npm-debug.log*
 
 # Docker & Config Files
 Dockerfile
-docker-compose*.yml
+docker-compose*.yaml
 .dockerignore
 README.md
