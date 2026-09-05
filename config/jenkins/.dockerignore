@@ -1,0 +1,38 @@
+# Dependencies & Build artifacts
+node_modules
+dist
+build
+
+# Version Control
+.git
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Environment & Secrets
+.env
+.env.*
+*.pem
+*.key
+*.crt
+jenkins-kubeconfig
+
+# Persistent Volumes & Local Data
+jenkins_home/
+sonar_data/
+sonar_logs/
+nexus_data/
+postgresql_data/
+
+# Logs & Temp Files
+*.log
+*.tmp
+npm-debug.log*
+
+# Docker & Config Files
+Dockerfile
+docker-compose*.yml
+.dockerignore
+README.md
