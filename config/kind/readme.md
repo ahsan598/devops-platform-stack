@@ -46,6 +46,12 @@ kubectl config use-context kind-dev-cluster
 kubectl config current-context
 ```
 
+**4. Delete Cluster**
+```sh
+# Delete cluster (Teardown)
+kind delete cluster --name dev-cluster
+```
+
 ### 🛠️ Operational & Maintenance Commands
 - Cluster Lifecycle
 ```sh
@@ -54,9 +60,6 @@ docker stop $(docker ps -q --filter "label=io.x-k8s.kind.cluster")
 
 # Start cluster containers (Resume lab)
 docker start $(docker ps -aq --filter "label=io.x-k8s.kind.cluster")
-
-# Delete cluster (Teardown)
-kind delete cluster --name dev-cluster
 ```
 - Helpful Shell Aliases (`~/.bashrc or ~/.zshrc`)
 ```sh
