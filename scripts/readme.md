@@ -23,11 +23,15 @@ chmod +x scripts/install/*.sh
     ```sh
     DOCKER_VERSION="5:27.5.1-1~ubuntu.22.04~jammy"
     ```
-  - To find the Docker package version available for your OS, run:
+  - To find the Docker package version available for your specific OS refer [Official Docker Repository](https://download.docker.com/linux/ubuntu).
     ```sh
+    # check currently installed and candidate versions for installation
     apt-cache policy docker-ce
+
+    # list all available exact version strings for your Ubuntu release
+    apt-cache madison docker-ce
     ```
-  - Use the appropriate version string shown under Candidate when pinning the package.
+  - Use the exact version string from `apt-cache madison` or shown under Candidate in `apt-cache policy` when pinning the package.
 
 - After running `install-docker-k8s.sh`, refresh your group membership by running `newgrp docker` (or restart your terminal) to run Docker without `sudo`.
 

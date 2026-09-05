@@ -1,19 +1,12 @@
-# Local Kubernetes Setup using KIND
+# 📦 Multi-Node Kubernetes Setup using KIND
 
-This directory contains the multi-node **KIND (Kubernetes IN Docker)** configuration and setup instructions for local cluster provisioning, image management, and port mapping.
+This folder contains the configuration and operational guides for provisioning and maintaining a local 4-node Kubernetes cluster using** Kind (Kubernetes in Docker)**.
 
-### 🏗️ Cluster Topology
-The cluster is provisioned with 4 nodes to mimic a real-world multi-node Kubernetes environment:
-```sh
-KIND Cluster: dev-cluster
-├── dev-cluster-control-plane (NodePort Ingress Mappings)
-├── dev-cluster-worker  (Workloads)
-├── dev-cluster-worker2 (Workloads)
-└── dev-cluster-worker3 (Workloads)
-```
-
-### 📂 Configuration (`kind-config.yaml`)
-This configuration maps critical DevOps NodePorts directly to your host machine (localhost).
+### 🏛️ Cluster Topology
+The cluster simulates a production-grade topology locally on WSL2/Linux:
+- **1 Control-Plane Node:** Manages cluster state, API server, and scheduling.
+- **3 Worker Nodes:** Executes workloads (Jenkins builds, Observability agents, and deployed microservices).
+- Port Forwarding: Binds host ports `30000-32767` directly to node ports, allowing direct access to cluster services (`Argo CD`, `Grafana`, `Prometheus`, `Nginx Ingress`) via localhost.
 
 ### 🌐 Mapped Service Ports Summary
 Once deployed, NodePort services listening on these ports inside the cluster become accessible on your host machine:
@@ -24,20 +17,21 @@ Once deployed, NodePort services listening on these ports inside the cluster bec
 | **Grafana** | `30030` | `30030` |
 | **Prometheus** | `30090` | `30090` |
 
-### 🚀 Quick Setup Guide
+### 🚀 Cluster Provisioning
 
-**1. Provision Cluster**
+**1. Create the Cluster**
+Deploy the cluster using the configuration manifest:
 ```sh
-kind create cluster --name dev-cluster --config kind-config.yaml
+kind create cluster \
+  --name dev-cluster \
+  --config config/kind/kind-config.yaml \
+  --image kindest/node:v1.36.4
 ```
 
 **2. Verify Deployment**
+Check that all 4 nodes are in the `Ready` state:
 ```sh
-# Verify API server and cluster connectivity
-kubectl cluster-info
-
-# Verify all 4 nodes are Ready
-kubectl get nodes
+kubectl get nodes -o wide
 ```
 
 **3. Manage Contexts**
@@ -52,6 +46,64 @@ kubectl config use-context kind-dev-cluster
 kubectl config current-context
 ```
 
+## 🔄 Cluster Version Upgrade Guide
+
+Kind allows both in-place image upgrades and complete cluster re-creations. When upgrading across multiple minor versions, always upgrade sequentially (e.g., `v1.34.x` ➔ `v1.35.x` ➔ `v1.36.x`). Skipping minor versions is not supported by Kubernetes.
+
+### Method 1: In-Place Rolling Upgrade (Preserves Workloads)
+Use this method to update node images without destroying running workloads or persistent volumes.
+
+**Step-1: Upgrade from v1.34 to v1.35**
+```sh
+# 1. Upgrade cluster node images
+kind upgrade node-image \
+  --name dev-cluster \
+  --image kindest/node:v1.35.0
+
+# 2. Verify node version
+kubectl get nodes -o wide
+
+# 3. Upgrade cluster node images to v1.36
+kind upgrade node-image \
+  --name dev-cluster \
+  --image kindest/node:v1.36.0
+```
+### Method 2: Tear-Down & Re-Create (Fastest for Local Labs)
+For local development environments, deleting and recreating the cluster with the target image is often the cleanest approach.
+```sh
+# 1. Delete existing cluster
+kind delete cluster --name dev-cluster
+
+# 2. Re-create cluster directly with target version
+kind create cluster \
+  --name dev-cluster \
+  --config kind-config.yaml \
+  --image kindest/node:v1.36.0
+```
+
+### 🛠️ Operational & Maintenance Commands
+- Cluster Lifecycle
+```sh
+# Stop cluster containers (Pause lab)
+docker stop $(docker ps -q --filter "label=io.x-k8s.kind.cluster")
+
+# Start cluster containers (Resume lab)
+docker start $(docker ps -aq --filter "label=io.x-k8s.kind.cluster")
+
+# Delete cluster (Teardown)
+kind delete cluster --name dev-cluster
+```
+- Helpful Shell Aliases (`~/.bashrc or ~/.zshrc`)
+```sh
+# Kind Kubernetes cluster container management
+
+# Start all Kind cluster containers
+alias kstart='docker start $(docker ps -aq --filter "label=io.x-k8s.kind.cluster")'
+
+# Stop all Kind cluster containers
+alias kstop='docker stop $(docker ps -q --filter "label=io.x-k8s.kind.cluster")'
+```
+
 ### 📦 Local Docker Image Management
 Since KIND runs `containerd` inside Docker nodes, locally built your custom docker images must be loaded into the cluster before deployment:
 ```sh
@@ -63,54 +115,4 @@ kind load docker-image my-app:1.0 --name dev-cluster
 
 # 3. Verify image inside containerd cache
 docker exec -it dev-cluster-control-plane crictl images | grep my-app
-```
-
-### 🛠️ Operational & Maintenance Commands
-Cluster Lifecycle
-```sh
-# Stop cluster containers (Pause lab)
-docker stop $(docker ps -q --filter "label=io.x-k8s.kind.cluster")
-
-# Start cluster containers (Resume lab)
-docker start $(docker ps -aq --filter "label=io.x-k8s.kind.cluster")
-
-# Delete cluster (Teardown)
-kind delete cluster --name dev-cluster
-```
-
-Helpful Shell Aliases (`~/.bashrc or ~/.zshrc`)
-```sh
-# Kind Kubernetes cluster container management
-
-# Start all Kind cluster containers
-alias kstart='docker start $(docker ps -aq --filter "label=io.x-k8s.kind.cluster")'
-
-# Stop all Kind cluster containers
-alias kstop='docker stop $(docker ps -q --filter "label=io.x-k8s.kind.cluster")'
-```
-
-### 🧩 KIND Image Management
-```sh
-# List kind clusters and nodes
-kind get clusters
-kind get nodes --name <cluster-name>
-
-# View images inside KIND node (containerd images)
-docker exec -it <node-name> crictl images
-
-# Load local Docker image into KIND cluster
-kind load docker-image <image-name>:<tag> --name <cluster-name>
-
-# (Optional but Recommended) Verify image inside KIND
-docker exec -it <node-name> crictl images | grep <image-name>:<tag>
-
-# Login into KIND node (shell)
-docker exec -it <node-name> bash
-
-# List or Remove images (inside KIND)
-crictl images
-crictl rmi <IMAGE_ID>
-
-# Remove unused images inside KIND
-crictl rmi --prune
 ```

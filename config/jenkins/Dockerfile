@@ -1,19 +1,16 @@
-# Base image on Jenkins LTS tracking Java 21
+# Base image on Jenkins LTS tracking Java 21 (Debian 12 / Bookworm)
 FROM jenkins/jenkins:lts-jdk21
 
 # Elevate to root user to install additional tools
 USER root
 
-# Explicitly set the versions of the tools to be installed
+# --------------------------------------------------------------------------
+# Explicitly set pinned tool versions matching Debian Bookworm
+# --------------------------------------------------------------------------
 ARG DOCKER_CLI_VERSION=5:27.5.1-1~debian.12~bookworm
-ARG MAVEN_VERSION=3.8.7
-ARG KUBECTL_VERSION=v1.34.2
+ARG KUBECTL_VERSION=v1.36.4
 ARG HELM_VERSION=v3.17.3
 ARG TRIVY_VERSION=0.71.1
-
-# Set environment variables for Maven
-ENV MAVEN_HOME=/opt/maven
-ENV PATH="${MAVEN_HOME}/bin:${PATH}"
 
 # --------------------------------------------------
 # Install essential packages
@@ -23,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # --------------------------------------------------
-# Install Docker CLI
+# Install Docker CLI (Debian Bookworm)
 # --------------------------------------------------
 RUN install -m 0755 -d /etc/apt/keyrings && \
     curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc && \
@@ -34,17 +31,6 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
     apt-get install -y --no-install-recommends \
         docker-ce-cli=${DOCKER_CLI_VERSION} && \
     rm -rf /var/lib/apt/lists/*
-
-# --------------------------------------------------
-# Install Maven
-# --------------------------------------------------
-RUN curl -fsSL \
-    "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
-    -o /tmp/maven.tar.gz && \
-    mkdir -p /opt && \
-    tar -xzf /tmp/maven.tar.gz -C /opt && \
-    ln -s "/opt/apache-maven-${MAVEN_VERSION}" "${MAVEN_HOME}" && \
-    rm /tmp/maven.tar.gz
 
 # --------------------------------------------------
 # Install kubectl
@@ -66,7 +52,7 @@ RUN curl -fsSL \
     rm -rf /tmp/helm.tar.gz /tmp/linux-amd64
 
 # --------------------------------------------------
-# Install Trivy
+# Install Trivy (Security Scanner)
 # --------------------------------------------------
 RUN curl -fsSL \
     "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
@@ -80,11 +66,11 @@ RUN curl -fsSL \
 # --------------------------------------------------
 RUN set -eux; \
     java --version; \
-    mvn --version; \
     git --version; \
     docker --version; \
     kubectl version --client; \
     helm version; \
     trivy --version
 
+# Return to Jenkins user
 USER jenkins

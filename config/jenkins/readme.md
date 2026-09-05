@@ -79,7 +79,7 @@ volumes:
 
 Inside the Jenkins container, `127.0.0.1` refers to the container itself.
 Edit `./jenkins-kubeconfig` and change the cluster server address:
-- Change from: `server: [https://127.0.0.1:6443]`
+- Change from: `server: [https://127.0.0.1:<port:number>]`
 - Change to: `server: https://<kind-control-plane-container-name>:6443`
   - (e.g., `https://dev-cluster-control-plane:6443`)
 - Keep all original CA certificates and token data unchanged.
@@ -161,3 +161,15 @@ After containers are up and running, fetch your initial passwords using the comm
 > [!NOTE]
 > - Daily use: `stop` / `start` is enough when you just want to pause and resume the stack.
 > - Use `down` when you want to remove the Compose containers. Named volumes are normally retained unless you explicitly use `-v`.
+
+
+## 🛠️ Post-Upgrade Maintenance
+Whenever a cluster is re-created or upgraded, internal API server certificates and endpoints are updated. Re-patch the Kubeconfig used by Jenkins to maintain connectivity:
+```sh
+# Copy and patch host kubeconfig for container network routing
+cp ~/.kube/config ../jenkins/jenkins-kubeconfig
+sed -i 's/127.0.0.1:[0-9]*/dev-cluster-control-plane:6443/g' ../jenkins/jenkins-kubeconfig
+
+# Verify integration from Jenkins container
+docker exec -it jenkins kubectl get nodes
+```
