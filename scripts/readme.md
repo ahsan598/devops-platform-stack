@@ -3,13 +3,13 @@
 Make all setup scripts executable and run them in order
 ```sh
 # Grant execution permissions
-chmod +x scripts/*.sh
+chmod +x scripts/install/*.sh
 
 # Execute setup sequence
-./scripts/install-core-tools.sh
-./scripts/install-runtimes.sh
-./scripts/install-container-tools.sh
-./scripts/install-devops-tools.sh
+./scripts/install/01-core-tools.sh
+./scripts/install/02-runtimes.sh
+./scripts/install/03-devops-tools.sh
+./scripts/install/04-container-tools.sh
 ```
 
 ### 📋 Note
@@ -30,4 +30,18 @@ apt-mark showhold
 
 # Release version hold when ready to upgrade
 sudo apt-mark unhold docker-ce docker-ce-cli containerd.io trivy
+```
+
+### Cleanup tools from system
+
+Make all cleanup scripts executable and run them in order
+```sh
+# Grant execution permissions
+chmod +x scripts/cleanup/*.sh
+
+# Execute cleanup sequence
+./scripts/cleanup/01-core-tools.sh
+./scripts/cleanup/02-runtimes.sh
+./scripts/cleanup/03-devops-tools.sh
+./scripts/cleanup/04-container-tools.sh
 ```
