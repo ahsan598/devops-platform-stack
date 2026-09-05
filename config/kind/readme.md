@@ -25,7 +25,7 @@ Deploy the cluster using the configuration manifest:
 kind create cluster \
   --name dev-cluster \
   --config config/kind/kind-config.yaml \
-  --image kindest/node:v1.36.4
+  --image kindest/node:v1.34.3
 ```
 
 **2. Verify Deployment**

@@ -27,8 +27,8 @@
 | **Docker Plugins** | Docker Buildx | `v0.36.1` |
 | | Docker Compose | `v5.5.0` |
 | **Container Runtime** | Containerd | `v2.3.4` |
-| **Local K8s Engine** | KIND (Kubernetes in Docker) | `v0.30.0` |
-| **K8s CLI Tools** | kubectl | `Client v1.34.2` |
+| **Local K8s Engine** | KIND (Kubernetes in Docker) | `v0.31.0` |
+| **K8s CLI Tools** | kubectl | `Client v1.34.3` |
 | | kustomize | `v5.7.1` |
 | | Helm | `v3.17.3` |
 
