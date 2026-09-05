@@ -46,41 +46,6 @@ kubectl config use-context kind-dev-cluster
 kubectl config current-context
 ```
 
-## 🔄 Cluster Version Upgrade Guide
-
-Kind allows both in-place image upgrades and complete cluster re-creations. When upgrading across multiple minor versions, always upgrade sequentially (e.g., `v1.34.x` ➔ `v1.35.x` ➔ `v1.36.x`). Skipping minor versions is not supported by Kubernetes.
-
-### Method 1: In-Place Rolling Upgrade (Preserves Workloads)
-Use this method to update node images without destroying running workloads or persistent volumes.
-
-**Step-1: Upgrade from v1.34 to v1.35**
-```sh
-# 1. Upgrade cluster node images
-kind upgrade node-image \
-  --name dev-cluster \
-  --image kindest/node:v1.35.0
-
-# 2. Verify node version
-kubectl get nodes -o wide
-
-# 3. Upgrade cluster node images to v1.36
-kind upgrade node-image \
-  --name dev-cluster \
-  --image kindest/node:v1.36.0
-```
-### Method 2: Tear-Down & Re-Create (Fastest for Local Labs)
-For local development environments, deleting and recreating the cluster with the target image is often the cleanest approach.
-```sh
-# 1. Delete existing cluster
-kind delete cluster --name dev-cluster
-
-# 2. Re-create cluster directly with target version
-kind create cluster \
-  --name dev-cluster \
-  --config kind-config.yaml \
-  --image kindest/node:v1.36.0
-```
-
 ### 🛠️ Operational & Maintenance Commands
 - Cluster Lifecycle
 ```sh
