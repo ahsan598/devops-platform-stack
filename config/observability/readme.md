@@ -107,14 +107,11 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
 
-# Prepare directory & values path
-mkdir -p ~/k8s-observability/loki
-
 # Install Loki
 helm install loki grafana/loki \
   --namespace logging \
   --version 18.11.3 \
-  -f ~/k8s-observability/loki/values.yaml
+  -f config/observability/loki/values.yaml
 ```
 
 **2. Install Fluent Bit (Log Collector)**
@@ -123,14 +120,11 @@ helm install loki grafana/loki \
 helm repo add fluent https://fluent.github.io/fluent-bit/
 helm repo update
 
-# Prepare directory & values path
-mkdir -p ~/k8s-observability/fluent-bit
-
 # Install Fluent Bit DaemonSet
 helm install fluent-bit fluent/fluent-bit \
   --namespace logging \
   --version 0.58.1 \
-  -f ~/k8s-observability/fluent-bit/values.yaml
+  -f config/observability/fluent-bit/values.yaml
 ```
 - Cluster-Internal Loki Endpoint:
 `(http://loki.logging.svc.cluster.local:3100)`

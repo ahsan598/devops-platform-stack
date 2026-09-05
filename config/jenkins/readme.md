@@ -42,13 +42,14 @@ Persistent volumes prevent data loss when containers are stopped or recreated:
   - `nexus_data`: Retains hosted artifacts, raw repositories, and private Docker registries.
 
 ### 🗺️ Recommended Stack Setup Order
-1. Create External Networks (`docker network create cicd_network`)
+1. Create External Networks (`docker network create cicd_network kind`)
 2. Create Kind Cluster (`kind create cluster --name dev-cluster --config kind-config.yaml`)
 3. Extract Host Docker GID & Patch Kubeconfig (`.env` & `jenkins-kubeconfig`)
 4. Build Jenkins Image & Deploy Stack (`docker compose up -d --build`)
 5. Verify Integrations (`kubectl get nodes` inside Jenkins)
 
-### 📋 Prerequisites
+
+### ⚡ Quick Start
 1. Create required external Docker networks:
 ```sh
 docker network create cicd_network
@@ -58,31 +59,6 @@ docker network create kind
 ```sh
 echo "DOCKER_GID=$(getent group docker | cut -d: -f3)" > .env
 ```
-
-### ⚡ Quick Start
-Build the custom Jenkins image and launch all containers in the background:
-```sh
-docker compose up -d --build
-```
-
-### 🔐 Initial Credentials & Access Secrets
-After containers are up and running, fetch your initial passwords using the commands below:
-
-1. Jenkins
-  - URL: http://localhost:8080
-  - Default User: `admin`
-  - Password Command: `docker exec -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword`
-
-2. SonarQube
-  - URL: http://localhost:9000
-  - Default Credentials: `admin` / `admin`
-  - (Note: You will be prompted to set a new password on your initial login.)
-
-3. Nexus Repository 3
-  - URL: http://localhost:8081
-  - Default User: `admin`
-  - Password Command: `docker exec -it nexus cat /nexus-data/admin.password`
-
 
 ### 🔗 Jenkins to Kind Kubernetes Integration
 Jenkins runs outside the Kind cluster as a Docker container. To enable `kubectl` deployments from Jenkins pipelines to your local Kind cluster, follow these 3 critical steps:
@@ -106,8 +82,7 @@ Edit `./jenkins-kubeconfig` and change the cluster server address:
 - Change from: `server: [https://127.0.0.1:6443]`
 - Change to: `server: https://<kind-control-plane-container-name>:6443`
   - (e.g., `https://dev-cluster-control-plane:6443`)
-
-Keep all original CA certificates and token data unchanged.
+- Keep all original CA certificates and token data unchanged.
 
 **3. Dual Network Attachment**
 
@@ -117,6 +92,11 @@ networks:
   - cicd_network
   - kind
 ```
+
+4. Build the custom Jenkins image and launch all containers in the background:
+  ```sh
+  docker compose up -d --build
+  ```
 
 ### 🛠️ Verification Commands
 Validate Jenkins container access, Kubernetes connectivity, and Docker integration:
@@ -140,8 +120,25 @@ docker ps -a
 docker images
 ```
 
+### 🔐 Initial Credentials & Access Secrets
+After containers are up and running, fetch your initial passwords using the commands below:
 
-## ⚠️ Troubleshooting Common Pitfalls
+1. Jenkins
+  - URL: http://localhost:8080
+  - Default User: `admin`
+  - Password Command: `docker exec -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword`
+
+2. SonarQube
+  - URL: http://localhost:9000
+  - Default Credentials: `admin` / `admin`
+  - (Note: You will be prompted to set a new password on your initial login.)
+
+3. Nexus Repository 3
+  - URL: http://localhost:8081
+  - Default User: `admin`
+  - Password Command: `docker exec -it nexus cat /nexus-data/admin.password`
+
+### ⚠️ Troubleshooting Common Pitfalls
 | Issue | Root Cause | Exact Fix |
 | :--- | :--- | :--- |
 | Permission denied on `/var/run/docker.sock` | Host Docker GID mismatch with container user group. | Run `echo "DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)" > .env` and restart stack via `docker compose up -d` |

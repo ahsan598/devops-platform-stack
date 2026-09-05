@@ -74,7 +74,7 @@ services:
 
 
   # ==========================================
-  # SonarQube PostgreSQL
+  # SonarQube Database (PostgreSQL)
   # ==========================================
   sonarqube_db:
     image: postgres:17-alpine

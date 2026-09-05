@@ -14,9 +14,21 @@ chmod +x scripts/install/*.sh
 
 ### 📋 Note
 - Tool versions are explicitly pinned where applicable to ensure reproducible environments.
-- **OS-Dependent Package Strings:** Certain package version strings depend directly on your Linux release/codename. For example, Docker Engine package pinning varies by OS version:
-  - `DOCKER_VERSION="5:27.5.1-1~ubuntu.24.04~noble" (Ubuntu 24.04 Noble)`
-  - `DOCKER_VERSION="5:27.5.1-1~ubuntu.22.04~jammy" (Ubuntu 22.04 Jammy)`
+- **OS-Dependent Package Strings:** Certain package version strings depend directly on your Linux release/codename. For example, Docker package pinning varies by OS version.
+  - Ubuntu 24.04 Noble:
+    ```sh
+    DOCKER_VERSION="5:27.5.1-1~ubuntu.24.04~noble"
+    ```
+  - Ubuntu 22.04 Jammy:
+    ```sh
+    DOCKER_VERSION="5:27.5.1-1~ubuntu.22.04~jammy"
+    ```
+  - To find the Docker package version available for your OS, run:
+    ```sh
+    apt-cache policy docker-ce
+    ```
+  - Use the appropriate version string shown under Candidate when pinning the package.
+
 - After running `install-docker-k8s.sh`, refresh your group membership by running `newgrp docker` (or restart your terminal) to run Docker without `sudo`.
 
 ### 🔒 Optional: Lock Tool Versions (Prevent Auto-Upgrades)
