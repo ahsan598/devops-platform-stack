@@ -8,7 +8,7 @@ USER root
 # Explicitly set pinned tool versions matching Debian Bookworm
 # --------------------------------------------------------------------------
 ARG DOCKER_CLI_VERSION=5:27.5.1-1~debian.12~bookworm
-ARG KUBECTL_VERSION=v1.34.3
+ARG KUBECTL_VERSION=v1.36.4
 ARG HELM_VERSION=v3.17.3
 ARG TRIVY_VERSION=0.71.1
 

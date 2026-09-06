@@ -12,10 +12,10 @@
 ### 1. Runtimes & Build Engines
 | Category | Tool / Utility | Pin Version |
 | :--- | :--- | :--- |
-| **Java Runtime** | OpenJDK | `21.0.11 LTS` |
+| **Java Runtime** | OpenJDK | `21.0.12 LTS` |
 | **Python Runtime** | Python 3 | `v3.12.3` |
 | **Node.js Runtime** | Node.js | `v22.23.1 LTS` |
-| **Package Managers** | npm | `v10.9.8` |
+| **Package Managers** | nvm / npm | `v0.40.3` / `v10.9.8` |
 | | pip | `v24.0` |
 | **Build Tool** | Apache Maven | `v3.8.7` |
 
@@ -24,12 +24,12 @@
 | Category | Tool / Binary | Pin Version |
 | :--- | :--- | :--- |
 | **Container Engine** | Docker Engine | `v27.5.1` |
-| **Docker Plugins** | Docker Buildx | `v0.36.1` |
-| | Docker Compose | `v5.5.0` |
+| **Docker Plugins** | Docker Buildx | `v0.37.0` |
+| | Docker Compose | `v5.5.1` |
 | **Container Runtime** | Containerd | `v2.3.4` |
-| **Local K8s Engine** | KIND (Kubernetes in Docker) | `v0.31.0` |
-| **K8s CLI Tools** | kubectl | `Client v1.34.3` |
-| | kustomize | `v5.7.1` |
+| **Local K8s Engine** | KIND (Kubernetes in Docker) | `v0.32.0` |
+| **K8s CLI Tools** | kubectl | `Client v1.36.4` |
+| | kustomize | `v5.8.1` |
 | | Helm | `v3.17.3` |
 
 ### 3. CI/CD, Registry & Security (SAST)
@@ -56,9 +56,9 @@
 | Tool Name | Primary Purpose | Pin Version |
 | :--- | :--- | :--- |
 | **Terraform** | Infrastructure as Code | `v1.15.9` |
-| **Ansible Core** | Configuration Management | `v2.16.3` |
-| **Trivy** | Container & Vulnerability Scanner | `v0.74.0` |
-| **AWS CLI** | Cloud Management CLI | `v2.32.29` |
+| **Ansible Core** | Configuration Management | `v2.20.3` |
+| **Trivy** | Container & Vulnerability Scanner | `v0.71.1` |
+| **AWS CLI** | Cloud Management CLI | `v2.35.24` |
 | **Git** | Distributed Version Control | `v2.43.0` |
 | **JQ / YQ** | JSON & YAML Processors | `jq-1.7` / `v4.53.3` |
 | **GNU Make** | Build Automation | `v4.3` |

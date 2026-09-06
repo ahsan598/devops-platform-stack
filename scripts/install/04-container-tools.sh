@@ -55,7 +55,7 @@ sudo usermod -aG docker "$USER"
 echo "Note: Log out and back in (or run 'newgrp docker') to use Docker without sudo."
 
 # 3. Install kubectl
-KUBECTL_VERSION="v1.34.3"
+KUBECTL_VERSION="v1.36.4"
 echo "Installing kubectl ${KUBECTL_VERSION}..."
 curl -fsSLO \
   "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
@@ -63,7 +63,7 @@ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 rm -f kubectl
 
 # 4. Install KIND
-KIND_VERSION="v0.31.0"
+KIND_VERSION="v0.32.0"
 echo "Installing KIND ${KIND_VERSION}..."
 curl -fsSLo \
   kind \
