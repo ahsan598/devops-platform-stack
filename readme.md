@@ -13,11 +13,8 @@ This repository serves as a central blueprint, organizing installation, configur
 ## 📂 Repository Structure
 ```text
 devops-platform-stack/
-├── commands/               # Common CLI commands and operational references
 ├── config/                 # Configuration files for platform tools and services
-├── deployments/            # Kubernetes manifests, Helm charts, and Compose files
 ├── docs/                   # Setup guides, prerequisites, and verification steps
-├── examples/               # Sample applications for testing and validation
 ├── scripts/                # Installation, automation, maintenance, and cleanup scripts
 ├── .gitignore              # Git ignore rules
 └── README.md               # Main project documentation
@@ -69,12 +66,12 @@ git clone https://github.com/ahsan598/devops-platform-stack.git
 cd devops-platform-stack
 
 # View the prerequisites document in the terminal
-cat docs/01-prerequisites.md
+cat docs/setup-guide.md
 ```
 
 ### 2. Inspect Verified Tool Matrix
 Check all pinned versions across runtimes, container engines, and observability stacks verified for this stack:
 ```sh
 # View all pinned versions
-cat docs/00-tools-version.md
+cat docs/tools-version.md
 ```
