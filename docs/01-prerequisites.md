@@ -41,7 +41,19 @@ stat -fc %T /sys/fs/cgroup
 # Output must be: cgroup2fs
 ```
 
-### 4. Base Preparation
+### 4. WSL2 Host Tuning
+Before installing Fluent Bit, increase system `inotify` limits on your WSL2 Ubuntu host to prevent log-watching file handle exhaustion:
+```sh
+# Increase inotify limits to support monitoring a large number of log files.
+# Persist the settings across system reboots.
+echo "fs.inotify.max_user_watches=524288" | sudo tee -a /etc/sysctl.conf
+echo "fs.inotify.max_user_instances=8192" | sudo tee -a /etc/sysctl.conf
+
+# Reload sysctl configuration and apply the new limits immediately.
+sudo sysctl -p
+```
+
+### 5. Base Preparation
 Update the system package index and upgrade installed packages:
 ```sh
 # Update System Packages

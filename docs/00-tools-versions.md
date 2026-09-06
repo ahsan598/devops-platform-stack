@@ -42,15 +42,13 @@
 | **Argo CD** | GitOps Controller / Server | `v3.5.1` |
 
 ### 4. Observability Stack
-| Component | Layer / Package | Pin Version / Tag |
+| Component | Description | Chart Version |
 | :--- | :--- | :--- |
-| **kube-prometheus-stack** | Helm Chart | `Chart v88.5.4` |
-| | Prometheus Engine | `v3.14.0-distroless` |
-| | Prometheus Operator | `v0.93.1` |
-| | Alertmanager | `v0.28.0` |
+| **kube-prometheus-stack** | Monitoring & Alerting Stack | `v88.5.4` |
+| **Metrics Server** | Kubernetes Resource Metrics | `v0.9.0` |
 | **Grafana** | Visualization Platform | `v13.2.0` |
-| **Grafana Loki** | Log Aggregator | `App v3.7.6` (`Chart v18.11.3`) |
-| **Fluent Bit** | Log Shipper | `App v5.1.1` (`Chart v0.58.1`) |
+| **Grafana Loki** | Log Aggregator | `v7.1.0` |
+| **Fluent Bit** | Log Shipper | `v0.58.0` |
 
 ### 5. IaC, Automation & System Utilities
 | Tool Name | Primary Purpose | Pin Version |

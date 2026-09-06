@@ -16,7 +16,6 @@ config:
         Flush         1
         Log_Level     info
         Parsers_File  /fluent-bit/etc/parsers.conf
-        Parsers_File  /fluent-bit/etc/conf/custom_parsers.conf
 
         HTTP_Server   On
         HTTP_Listen   0.0.0.0
@@ -24,13 +23,13 @@ config:
 
   inputs: |
     [INPUT]
-        Name            tail
-        Path            /var/log/containers/*.log
-        multiline.parser docker, cri
-        Tag             kube.*
-        Mem_Buf_Limit   5MB
-        Skip_Long_Lines On
-        Refresh_Interval 10
+        Name              tail
+        Path              /var/log/containers/*.log
+        Parser            cri
+        Tag               kube.*
+        Mem_Buf_Limit     10MB
+        Skip_Long_Lines   On
+        Refresh_Interval  10
 
   filters: |
     [FILTER]
@@ -49,26 +48,14 @@ config:
         Host        loki.logging.svc.cluster.local
         Port        3100
         URI         /loki/api/v1/push
-        Labels      job=fluent-bit,namespace=$kubernetes['namespace_name'],pod=$kubernetes['pod_name'],container=$kubernetes['container_name'],node=$kubernetes['host']
+        Labels      job=fluent-bit, namespace=$kubernetes['namespace_name'], pod=$kubernetes['pod_name'], container=$kubernetes['container_name'], node=$kubernetes['host']
         Line_Format json
         Auto_Kubernetes_Labels Off
-
-  customParsers: |
-    [PARSER]
-        Name        docker_no_time
-        Format      json
-        Time_Keep   Off
-        Time_Key    time
-        Time_Format %Y-%m-%dT%H:%M:%S.%L
 
 daemonSetVolumes:
   - name: varlog
     hostPath:
       path: /var/log
-
-  - name: varlibdockercontainers
-    hostPath:
-      path: /var/lib/docker/containers
 
   - name: etcmachineid
     hostPath:
@@ -78,10 +65,6 @@ daemonSetVolumes:
 daemonSetVolumeMounts:
   - name: varlog
     mountPath: /var/log
-
-  - name: varlibdockercontainers
-    mountPath: /var/lib/docker/containers
-    readOnly: true
 
   - name: etcmachineid
     mountPath: /etc/machine-id

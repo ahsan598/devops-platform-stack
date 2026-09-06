@@ -1,4 +1,4 @@
-deploymentMode: Monolithic
+deploymentMode: SingleBinary
 
 loki:
   auth_enabled: false
@@ -18,55 +18,35 @@ loki:
 
   storage:
     type: filesystem
+    bucketNames:
+      chunks: chunks
+      ruler: ruler
+      admin: admin
 
-  # Disable chunks cache for local Kind/WSL2 lab
-  chunksCache:
-    enabled: false
-
+# Single instance StatefulSet configuration
 singleBinary:
   replicas: 1
+  persistence:
+    enabled: true
+    size: 10Gi
 
+# Disable SimpleScalable targets
 backend:
   replicas: 0
-
 read:
   replicas: 0
-
 write:
   replicas: 0
 
-ingester:
-  replicas: 0
-
-querier:
-  replicas: 0
-
-queryFrontend:
-  replicas: 0
-
-queryScheduler:
-  replicas: 0
-
-distributor:
-  replicas: 0
-
-compactor:
-  replicas: 0
-
-indexGateway:
-  replicas: 0
-
-bloomPlanner:
-  replicas: 0
-
-bloomBuilder:
-  replicas: 0
-
-bloomGateway:
-  replicas: 0
+# Disable cache & microservices
+chunksCache:
+  enabled: false
+resultsCache:
+  enabled: false
 
 gateway:
   enabled: false
-
 lokiCanary:
-  enabled: true
+  enabled: false
+test:
+  enabled: false
