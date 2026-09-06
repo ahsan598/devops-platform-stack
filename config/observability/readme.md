@@ -126,7 +126,7 @@ helm install fluent-bit fluent/fluent-bit \
   --version 0.58.1 \
   -f config/observability/fluent-bit/values.yaml
 ```
-- Cluster-Internal Loki Endpoint:
+Cluster-Internal Loki Endpoint:
 `(http://loki.logging.svc.cluster.local:3100)`
 
 ### 🧪 Step 6: Verification & Test Workflow

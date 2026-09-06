@@ -17,26 +17,6 @@ Once deployed, NodePort services listening on these ports inside the cluster bec
 | **Grafana** | `30030` | `30030` |
 | **Prometheus** | `30090` | `30090` |
 
-### ⚙️ Prerequisites & WSL2 cgroup v2 Configuration
-Kubernetes **v1.36+** (e.g., `v1.36.4`) requires **cgroup v2** for proper resource accounting and systemd init driver compatibility inside Kind node containers.
-
-**1. Enable cgroup v2 in WSL2**
-- Create or update your `%USERPROFILE%\.wslconfig` file on your Windows host (or `/etc/wsl.conf` inside Linux)
-```ini
-[wsl2]
-kernelCommandLine = cgroup_no_v1=all
-```
-- After modifying the configuration, restart WSL2 from PowerShell/CMD:
-```sh
-wsl --shutdown
-```
-
-**2. Verify cgroup v2 in WSL2/Ubuntu**
-Inside your WSL2 shell, verify that cgroup v2 is active:
-```sh
-stat -fc %T /sys/fs/cgroup
-# Output must be: cgroup2fs
-```
 
 ### 🚀 Cluster Provisioning
 

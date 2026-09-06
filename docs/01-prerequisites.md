@@ -6,22 +6,42 @@ Before provisioning tools and infrastructure, verify that your host environment 
 ### 1. System Hardware Requirements
 | Resource | Minimum Required | Recommended for Full Stack |
 | :--- | :--- | :--- |
-| **RAM** | 8 GB | 16 GB (To run KIND + Jenkins + Sonar + Monitoring concurrently) |
-| **CPU Cores** | 4 Cores (8 Threads) | 8 Cores |
+| **RAM** | 12 GB | 16 GB (To run KIND + Jenkins + Sonar + Monitoring concurrently) |
+| **CPU Cores** | 6 Cores (8 Threads) | 8 Cores |
 | **Disk Space** | 25 GB Free (SSD) | 50 GB Free (NVMe SSD preferred) |
 
 ### 2. Windows WSL2 Setup (Optional — Windows Users Only)
 If you are running on Windows via WSL2, create or update `%USERPROFILE%\.wslconfig` in Windows to allocate sufficient resources:
 ```ini
 [wsl2]
-memory=8GB          # Limits memory in WSL2 (Increase to 12GB/16GB if available)
-processors=4        # Limits CPU cores in WSL2
-swap=4GB            # Swap memory space
+memory=12GB  	    # Set max RAM (adjust as needed)
+processors=6  	        # Set CPU cores
+swap=2GB  	            # Optional: Swap space
 localhostForwarding=true
 ```
-> Note for Native Linux Users: If you are running on native Ubuntu/Debian, skip Section 2 and proceed directly to system package updates.
+> Note for Native Linux Users: If you are running on native Ubuntu/Debian, skip Section 2 and proceed directly to `cgroup v2` configuration.
 
-### 3. Base Preparation
+### 3. Control group v2 (cgroup v2) Configuration
+Kubernetes **v1.36+** (e.g., `v1.36.4`) requires **cgroup v2** for proper resource accounting and systemd init driver compatibility inside Kind node containers.
+
+**a. Enable cgroup v2 in WSL2**
+- Create or update your `%USERPROFILE%\.wslconfig` file on your Windows host (or `/etc/wsl.conf` inside Linux)
+  ```ini
+  [wsl2]
+  kernelCommandLine = cgroup_no_v1=all
+  ```
+- After modifying the configuration, restart WSL2 from PowerShell/Terminal:
+  ```sh
+  wsl --shutdown
+  ```
+**b. Verify cgroup v2 in WSL2/Ubuntu**
+Inside your WSL2 shell/Terminal, verify that cgroup v2 is active:
+```sh
+stat -fc %T /sys/fs/cgroup
+# Output must be: cgroup2fs
+```
+
+### 4. Base Preparation
 Update the system package index and upgrade installed packages:
 ```sh
 # Update System Packages

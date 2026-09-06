@@ -15,7 +15,7 @@ This repository spins up a production-ready CI/CD environment comprising Jenkins
 **1. Why a Custom Jenkins Image (`devops-jenkins:1.0`)?**
 
 The stock vanilla Jenkins image lacks essential build and DevOps tools out of the box. To prevent pipeline execution errors and avoid installing tools at runtime:
-   - **Pre-baked CLI Tools:** Essential tools like **Docker CLI, Maven, Helm, Kubectl, and Trivy** are installed directly into the image layer.
+   - **Pre-baked CLI Tools:** Essential tools like **Docker CLI, Helm, Kubectl, and Trivy** are installed directly into the image layer.
    - **Exact Docker CLI Pinning:** To guarantee deterministic builds, the Docker CLI version is pinned to `5:27.5.1-1~debian.12~bookworm` fetched explicitly from the official [Debian Docker Repository](https://download.docker.com/linux/debian/) using Debian-12 (`bookworm`) package sources.
 
 **2. Docker Out of Docker (DooD) Setup**

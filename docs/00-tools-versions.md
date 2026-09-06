@@ -35,8 +35,8 @@
 ### 3. CI/CD, Registry & Security (SAST)
 | Service / Tool | Deployment / Base Image | Pin Version |
 | :--- | :--- | :--- |
-| **Jenkins** | Enterprise LTS Release | `v2.568.2` |
-| **SonarQube** | Community Build Image | `v25.12.0.117093` |
+| **Jenkins** | Enterprise LTS Release | `v2.568.3` |
+| **SonarQube** | Community Build Image | `v26.9.0.129388` | 
 | **PostgreSQL** | Database Image (`postgres:17-alpine`) | `17-alpine` |
 | **Nexus Manager** | Sonatype Image (`sonatype/nexus3`) | `v3.87.2` |
 | **Argo CD** | GitOps Controller / Server | `v3.5.1` |
