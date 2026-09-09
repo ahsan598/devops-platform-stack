@@ -6,13 +6,12 @@ This folder contains the configuration and operational guides for provisioning a
 The cluster simulates a production-grade topology locally on WSL2/Linux:
 - **1 Control-Plane Node:** Manages cluster state, API server, and scheduling.
 - **3 Worker Nodes:** Executes workloads (Jenkins builds, Observability agents, and deployed microservices).
-- **Port Forwarding:** Binds host ports `30000-32767` directly to node ports, allowing direct access to cluster services (`Argo CD`, `Grafana`, `Prometheus`, `Nginx Ingress`) via localhost.
+- **Port Forwarding:** Binds host ports `30000-32767` directly to node ports, allowing direct access to cluster services (`Argo CD`, `Grafana`, `Prometheus`) via localhost.
 
 ### 🌐 Mapped Service Ports Summary
 Once deployed, NodePort services listening on these ports inside the cluster become accessible on your host machine:
 | Service Target | Container Port | Host Port |
 | :--- | :--- | :--- |
-| **Nginx Ingress** | `30080` | `30080` |
 | **ArgoCD** | `30082` | `30082` |
 | **Grafana** | `30030` | `30030` |
 | **Prometheus** | `30090` | `30090` |

@@ -23,11 +23,11 @@ Each component in `config/` handles a specific layer of the platform architectur
 
 **2. Multi-Node Kubernetes Topology (`config/kind/`)**
 - **Kind (Kubernetes in Docker):** Provisions a 4-node cluster (1 Control Plane + 3 Worker Nodes) simulating production-like Kubernetes topologies locally.
-- **NodePort & Ingress Mappings:** Pre-configures host port forwardings (`30000-32767`) to directly expose cluster-hosted applications (Argo CD, Grafana, Prometheus) without complex load balancer drivers.
+- **NodePort Mappings:** Pre-configures host port forwardings (`30000-32767`) to directly expose cluster-hosted applications (Argo CD, Grafana, Prometheus) without complex load balancer drivers.
 
 **3. Observability & GitOps Ecosystem (`config/observability/`)**
 - **Prometheus & Grafana (kube-prometheus-stack):** End-to-end metrics collection, alerting, and pre-built dashboards for host, container, and cluster-level monitoring.
 - **Loki & Fluent Bit:** Lightweight log aggregation system. Fluent Bit collects and parses stdout/stderr container logs across nodes and ships them directly to Loki for central query access in Grafana.
 
-4. GitOps (`config/gitops/`)**
+4. **GitOps (`config/gitops/`)**
 - **Argo CD:** Declarative GitOps continuous delivery tool managing application state synchronization directly inside the Kind cluster.

@@ -5,7 +5,7 @@ A declarative GitOps continuous delivery setup deployed on Kubernetes. Features 
 | Tool / Service | Namespace | Access URL / Internal Endpoint | Credentials |
 | :--- | :--- | :--- | :--- |
 | **Argo CD UI** | `argocd` | `https://localhost:30082` | `admin` / *(Generated below)* |
-| **Nginx Demo App** | `argocd` | `http://localhost:30085` | N/A |
+| **Nginx Demo App** | `argocd` | `http://localhost:30080` | N/A |
 
 ### 🛠️ Namespace Initialization
 ```sh
@@ -54,7 +54,7 @@ kubectl get svc nginx-demo -n argocd
 3. Test Local Application Access
 ```sh
 # Access the Nginx demo application directly via the exposed NodePort endpoint
-curl -I http://localhost:30085
+curl -I http://localhost:30080
 ```
 ![app-verify](/assets/nginx-app.jpg)
 

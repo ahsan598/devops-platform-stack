@@ -9,7 +9,7 @@ A Kubernetes observability stack deployed on WSL2 using Kind (Kubernetes `v1.36+
     │ :30080           │ :30030       │ :30090       │
     ▼                  ▼              ▼              ▼
 ┌─────────┐      ┌──────────┐   ┌────────────┐   ┌───────────────┐
-│ Ingress │      │ Grafana  │   │ Prometheus │   │  Metrics Top  │
+│ Nginx   │      │ Grafana  │   │ Prometheus │   │  Metrics Top  │
 └─────────┘      └──────────┘   └────────────┘   └───────────────┘
                       ▲               │
                       │ (Logs Query)  │ (Metrics Query)
@@ -25,7 +25,7 @@ A Kubernetes observability stack deployed on WSL2 using Kind (Kubernetes `v1.36+
 | **Prometheus UI** | `monitoring` | `http://localhost:30090` |
 | **Loki Engine** | `logging` | `http://loki.logging.svc.cluster.local:3100` |
 | **Fluent Bit** | `logging` | DaemonSet |
-| **Nginx Ingress** | - | `http://localhost:30080` |
+| **Nginx App** | - | `http://localhost:30080` |
 
 
 ### 🛠️ Step 1: Namespace Initialization
