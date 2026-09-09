@@ -5,7 +5,7 @@ An enterprise-grade, reproducible DevOps lab environment for learning, building,
 This repository serves as a central blueprint, organizing installation, configuration, verification, and cleanup workflows for each component.
 
 > [!NOTE]
-> This setup is compatible with **Ubuntu/Debian-based** Linux distributions and **Windows via WSL2**. All installation workflows have been actively tested and verified on **Windows WSL2 running on Ubuntu 24.04 LTS**.
+> This setup is compatible with **Ubuntu/Debian-based** Linux distributions and **Windows via WSL2**. All installation workflows have been actively tested and verified on **AWS EC2 & Windows WSL2 running on Ubuntu 24.04 LTS**.
 >
 > **RHEL-based** distributions (e.g., **Rocky Linux, AlmaLinux, CentOS, Fedora**) are not currently covered, as they utilize `dnf/yum` package managers instead of `apt`.
 
@@ -23,9 +23,10 @@ devops-platform-stack/
 ## 🛠️ Technology Stack Overview
 
 ### 💻 Application Development
-- **Java & Maven:** Enterprise backend runtime and build automation.
-- **Node.js & npm:** Modern frontend/microservices runtime and package manager.
-- **Python & pip:** Automation scripting, data utilities, and package manager.
+- **Java & Maven:** Enterprise backend runtime (OpenJDK 21 LTS) and build automation.
+- **Node.js, npm:** JavaScript, TypeScript runtime and package manager 
+  - **nvm:** Node.js version manager for installing and switching between Node.js versions.
+- **Python, pip & venv:** Automation scripting, package management, and isolated virtual environment utilities.
 
 ### 🔄 CI/CD & Artifact Management
 - **Jenkins:** Core continuous integration and pipeline engine.
@@ -66,7 +67,7 @@ git clone https://github.com/ahsan598/devops-platform-stack.git
 cd devops-platform-stack
 
 # View the prerequisites document in the terminal
-cat docs/setup-guide.md
+cat docs/prerequisites.md
 ```
 
 ### 2. Inspect Verified Tool Matrix

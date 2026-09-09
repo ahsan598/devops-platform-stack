@@ -7,9 +7,10 @@ Designed for hands-on practice with modern CI/CD pipelines, Infrastructure as Co
 ```txt
 devops-platform-stack/
 ├── config/
-│   ├── jenkins/              # Custom Jenkins Dockerfile, compose, and kubeconfig patch setup
-│   ├── kind/                  # Multi-node Kind cluster config with mapped NodePorts
-│   └── observability/    # Helm configurations for Monitoring, Logging, and Argo CD
+│   ├── gitops/                 # Argo CD manifests and application definitions
+│   ├── jenkins/                # Custom Jenkins Dockerfile, Compose, and kubeconfig patch
+│   ├── kind/                    # Multi-node Kind cluster setup with mapped NodePorts
+│   └── observability/      # Helm values and configurations for Prometheus, Grafana & Logging
 ```
 
 ### 🏗️ Platform Stack Overview
@@ -27,4 +28,6 @@ Each component in `config/` handles a specific layer of the platform architectur
 **3. Observability & GitOps Ecosystem (`config/observability/`)**
 - **Prometheus & Grafana (kube-prometheus-stack):** End-to-end metrics collection, alerting, and pre-built dashboards for host, container, and cluster-level monitoring.
 - **Loki & Fluent Bit:** Lightweight log aggregation system. Fluent Bit collects and parses stdout/stderr container logs across nodes and ships them directly to Loki for central query access in Grafana.
+
+4. GitOps (`config/gitops/`)**
 - **Argo CD:** Declarative GitOps continuous delivery tool managing application state synchronization directly inside the Kind cluster.

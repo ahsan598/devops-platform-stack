@@ -1,5 +1,4 @@
-# ⚡Execution Quick-Start
-
+## ⚡Install tools on your system
 Make all setup scripts executable and run them in order
 ```sh
 # Grant execution permissions
@@ -33,9 +32,9 @@ chmod +x scripts/install/*.sh
     ```
   - Use the exact version string from `apt-cache madison` or shown under Candidate in `apt-cache policy` when pinning the package.
 
-- After running `install-docker-k8s.sh`, refresh your group membership by running `newgrp docker` (or restart your terminal) to run Docker without `sudo`.
+- After running `04-container-tools.sh`, refresh your group membership by running `newgrp docker` (or restart your terminal) to run Docker without `sudo`.
 
-### 🔒 Optional: Lock Tool Versions (Prevent Auto-Upgrades)
+## 🔒 Optional: Lock Tool Versions (Prevent Auto-Upgrades)
 To prevent package managers from accidentally upgrading production-critical binaries during routine `apt upgrade` runs:
 ```sh
 # Hold Docker and Trivy versions
@@ -48,8 +47,7 @@ apt-mark showhold
 sudo apt-mark unhold docker-ce docker-ce-cli containerd.io trivy
 ```
 
-### Cleanup tools from system
-
+## 🧹Cleanup tools from system
 Make all cleanup scripts executable and run them in order
 ```sh
 # Grant execution permissions

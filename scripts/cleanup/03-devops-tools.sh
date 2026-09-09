@@ -27,12 +27,11 @@ fi
 rm -rf "${HOME}/.local/pipx" "${HOME}/.local/bin/ansible"* 2>/dev/null || true
 sudo apt purge -y pipx || true
 
-# 4. Remove Trivy Security Scanner, Repo, and Keyring
-echo "Removing Trivy scanner and repository settings..."
-sudo apt-mark unhold trivy 2>/dev/null || true
-sudo apt purge -y trivy || true
-sudo rm -f /etc/apt/sources.list.d/trivy.list
-sudo rm -f /usr/share/keyrings/trivy.gpg
+# 4. # Remove Trivy Binary
+if [ -f /usr/local/bin/trivy ]; then
+  echo "Removing Trivy binary..."
+  sudo rm -f /usr/local/bin/trivy
+fi
 
 # 5. Clean APT Cache and Dependencies
 echo "Cleaning apt package cache..."

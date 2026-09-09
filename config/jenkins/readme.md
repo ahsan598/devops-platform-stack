@@ -52,6 +52,10 @@ Persistent volumes prevent data loss when containers are stopped or recreated:
 ### ⚡ Quick Start
 1. Create required external Docker networks:
 ```sh
+# Navigate to the Jenkins configuration directory
+cd devops-platform-stack/config/jenkins
+
+# create docker networks
 docker network create cicd_network
 docker network create kind
 ```
@@ -123,17 +127,17 @@ docker images
 ### 🔐 Initial Credentials & Access Secrets
 After containers are up and running, fetch your initial passwords using the commands below:
 
-1. Jenkins
+**1. Jenkins**
   - URL: http://localhost:8080
   - Default User: `admin`
   - Password Command: `docker exec -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword`
 
-2. SonarQube
+**2. SonarQube**
   - URL: http://localhost:9000
   - Default Credentials: `admin` / `admin`
   - (Note: You will be prompted to set a new password on your initial login.)
 
-3. Nexus Repository 3
+**3. Nexus Repository 3**
   - URL: http://localhost:8081
   - Default User: `admin`
   - Password Command: `docker exec -it nexus cat /nexus-data/admin.password`

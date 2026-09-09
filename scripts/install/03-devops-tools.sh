@@ -45,18 +45,10 @@ fi
 TRIVY_VERSION="0.71.1"
 echo "Installing Trivy v${TRIVY_VERSION}..."
 
-sudo install -m 0755 -d /usr/share/keyrings
-
-wget -qO- https://aquasecurity.github.io/trivy-repo/deb/public.key \
-    | gpg --dearmor \
-    | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-
-echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" \
-    | sudo tee /etc/apt/sources.list.d/trivy.list > /dev/null
-
-sudo apt update
-sudo apt install -y "trivy=${TRIVY_VERSION}"
-sudo apt-mark hold trivy
+wget -q "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+tar -xzf "trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" trivy
+sudo mv trivy /usr/local/bin/
+rm "trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
 
 # 6. Verify Installations
 echo "Cloud, IaC & Security Tools Installed:"

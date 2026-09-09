@@ -1,30 +1,31 @@
-# 📊 Kubernetes Observability & GitOps Stack Setup (Kind)
-A modular, GitOps-ready Kubernetes workbench deployed on WSL2 using Kind (Kubernetes `v1.36+`). Features strict namespace isolation (`monitoring`, `logging`, `argocd`) with pinned helm releases and zero-friction log ingestion.
+# 📊 Observability Stack Setup (Kind)
+A Kubernetes observability stack deployed on WSL2 using Kind (Kubernetes `v1.36+`). Features strict namespace isolation (`monitoring`, `logging`) with pinned helm releases for metrics collection, visualization, and zero-friction log ingestion.
 
-### 🏛️ Stack Overview & Version Matrix
+### 🏛️ Stack Overview
 ```txt
-                                [ Local Host ]
+                              [ Local Host ]
                                       │
-    ┌──────────────────┬──────────────┼──────────────┬──────────────────┐
-    │ :30080           │ :30082       │ :30030       │ :30090           │
-    ▼                  ▼              ▼              ▼                  ▼
-┌─────────┐      ┌──────────┐   ┌──────────┐   ┌────────────┐   ┌───────────────┐
-│ Ingress │      │ Argo CD  │   │ Grafana  │   │ Prometheus │   │  Metrics Top  │
-└─────────┘      └──────────┘   └──────────┘   └────────────┘   └───────────────┘
-                                      ▲              │
-                                      │ (Logs Query) │ (Metrics Query)
-                                ┌─────┴────┐         ▼
-                                │   Loki   │◄────[ Fluent Bit DaemonSet ]
-                                └──────────┘
+    ┌──────────────────┬──────────────┼──────────────┐
+    │ :30080           │ :30030       │ :30090       │
+    ▼                  ▼              ▼              ▼
+┌─────────┐      ┌──────────┐   ┌────────────┐   ┌───────────────┐
+│ Ingress │      │ Grafana  │   │ Prometheus │   │  Metrics Top  │
+└─────────┘      └──────────┘   └────────────┘   └───────────────┘
+                      ▲               │
+                      │ (Logs Query)  │ (Metrics Query)
+                ┌─────┴────┐          ▼
+                │   Loki   │◄────[ Fluent Bit DaemonSet ]
+                └──────────┘
 ```
 
+### 📌 Access & Endpoints
 | Tool / Service | Namespace | Access URL / Internal Endpoint |
 | :--- | :--- | :--- |
 | **Grafana** | `monitoring` | `http://localhost:30030` |
 | **Prometheus UI** | `monitoring` | `http://localhost:30090` |
-| **Argo CD UI** | `argocd` | `https://localhost:30082` |
 | **Loki Engine** | `logging` | `http://loki.logging.svc.cluster.local:3100` |
 | **Fluent Bit** | `logging` | DaemonSet |
+| **Nginx Ingress** | - | `http://localhost:30080` |
 
 
 ### 🛠️ Step 1: Namespace Initialization
@@ -35,7 +36,6 @@ kubectl get nodes
 helm version
 
 # 2. Provision Isolated Namespaces
-kubectl create namespace argocd
 kubectl create namespace logging
 kubectl create namespace monitoring
 ```
@@ -59,25 +59,7 @@ kubectl top nodes
 kubectl top pods -A
 ```
 
-### 🚀 Step 3: Argo CD Deployment (GitOps Engine)
-Deploy Argo CD and expose the web dashboard via NodePort.
-```sh
-# 1. Install Pinned Argo CD Release
-kubectl apply -n argocd \
-  --server-side \
-  --force-conflicts \
-  -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.1/manifests/install.yaml
-
-# 2. Expose Server UI via NodePort 30082
-kubectl patch svc argocd-server -n argocd \
-  -p '{"spec":{"type":"NodePort","ports":[{"name":"https","port":443,"targetPort":8080,"nodePort":30082}]}}'
-
-# 3. Retrieve Initial Admin Password (Username: admin)
-kubectl -n argocd get secret argocd-initial-admin-secret \
-  -o jsonpath="{.data.password}" | base64 -d; echo
-```
-
-### 🪵 Step 4: Logging Stack (Loki + Fluent Bit)
+### 🪵 Step 3: Logging Stack (Loki + Fluent Bit)
 **1. Install Loki**
 ```sh
 # 1. Add & Update Grafana Repository
@@ -115,7 +97,7 @@ kubectl rollout restart daemonset fluent-bit -n logging
 kubectl get pods -n logging
 ```
 
-### 🎯 Step 5: Monitoring Stack (kube-prometheus-stack)
+### 🎯 Step 4: Monitoring Stack (kube-prometheus-stack)
 Deploys Prometheus, Grafana, Alertmanager, and Node Exporter with Loki pre-provisioned as a default log datasource.
 ```sh
 # 1. Add & Update Community Repository
@@ -147,7 +129,7 @@ kubectl get secret -n monitoring monitoring-grafana \
   -o jsonpath="{.data.admin-password}" | base64 -d; echo
 ```
 
-### 🧪 Step 6: Log Forwarding Verification & Test Workflow
+### 🧪 Step 5: Log Forwarding Verification & Test Workflow
 Deploy a temporary container to generate test log entries:
 ```sh
 # 1. Execute Log Generator Pod
