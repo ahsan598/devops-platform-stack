@@ -9,7 +9,7 @@ A declarative GitOps continuous delivery setup deployed on Kubernetes. Features 
 
 ### 🛠️ Namespace Initialization
 ```sh
-# 2. Provision Isolated Namespaces
+# Provision Isolated Namespaces
 kubectl create namespace argocd
 ```
 

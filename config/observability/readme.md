@@ -131,7 +131,7 @@ kubectl delete pod log-test -n default
 
 ### Grafana Verification
 1. Open Grafana UI: http://localhost:30030
-2. Navigate to Explore (/explore).
+2. Navigate to Explore (`/explore`).
 3. Select Loki Data Source from the dropdown.
 4. Run LogQL Query: `{pod="log-test"}`
 5. Confirm that log lines `Loki integration test log line X` are stream-rendered under log analytics!

@@ -4,31 +4,14 @@ A production-grade local DevOps lab environment featuring **Jenkins (DInD), Sona
 Designed for hands-on practice with modern CI/CD pipelines, Infrastructure as Code, continuous testing, and cloud-native observability on **WSL2 / Linux.**
 
 
-### 🏛️ Stack Overview of KIND Cluster
-```txt
-                                [ KIND Cluster]
-                                      │
-    ┌──────────────────┬──────────────┼──────────────┬──────────────────┐
-    │ :30080           │ :30082       │ :30030       │ :30090           │
-    ▼                  ▼              ▼              ▼                  ▼
-┌─────────┐      ┌──────────┐   ┌──────────┐   ┌────────────┐   ┌───────────────┐
-│ Nginx   │      │ Argo CD  │   │ Grafana  │   │ Prometheus │   │  Metrics Top  │
-└─────────┘      └──────────┘   └──────────┘   └────────────┘   └───────────────┘
-                                      ▲              │
-                                      │ (Logs Query) │ (Metrics Query)
-                                ┌─────┴────┐         ▼
-                                │   Loki   │◄────[ Fluent Bit DaemonSet ]
-                                └──────────┘
-```
-
 ### 📂 Repository Layout
 ```txt
 devops-platform-stack/
 ├── config/
 │   ├── gitops/                 # Argo CD manifests and application definitions
 │   ├── jenkins/                # Custom Jenkins Dockerfile, Compose, and kubeconfig patch
-│   ├── kind/                    # Multi-node Kind cluster setup with mapped NodePorts
-│   └── observability/      # Helm values and configurations for Prometheus, Grafana & Logging
+│   ├── kind/                   # Multi-node Kind cluster setup with mapped NodePorts
+│   └── observability/          # Helm values and configs for Prometheus, Grafana & FluentBit
 ```
 
 Each component in `config/` handles a specific layer of the platform architecture:

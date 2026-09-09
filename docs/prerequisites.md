@@ -7,7 +7,7 @@ Before provisioning tools and infrastructure, verify that your host environment 
 | :--- | :--- | :--- |
 | **RAM** | 8 GB | 16 GB (To run KIND + Jenkins + Sonar + Monitoring concurrently) |
 | **CPU Cores** | 4 Cores (8 Threads) | 8 Cores |
-| **Disk Space** | 25 GB Free (SSD) | 50 GB Free (NVMe SSD preferred) |
+| **Disk Space** | 25 GB Free (SSD) | 50 GB Free (SSD preferred) |
 
 ### 2. Base Preparation
 Update the system package index and upgrade installed packages:
@@ -25,13 +25,13 @@ cat /etc/os-release
 If you are running on Windows via WSL2, create or update `%USERPROFILE%\.wslconfig` in Windows to allocate sufficient resources:
 ```ini
 [wsl2]
-memory=8GB  	    # Set max RAM (adjust as needed)
-processors=4  	        # Set CPU cores
-swap=4GB  	            # Optional: Swap space
+memory=8GB							# Set max RAM (adjust as needed)
+processors=4						# Set CPU cores
+swap=4GB							# Optional: Swap space
 localhostForwarding=true
 ```
 
-### 4. Control group v2 (cgroup v2) Configuration
+### 4. Control group v2 (`cgroup v2`) Configuration
 Kubernetes **v1.36+** (e.g., `v1.36.4`) requires **cgroup v2** for proper resource accounting, cgroup limits, and systemd init driver compatibility inside Kind node containers.
 
 - **Native Linux / EC2 (Ubuntu 22.04 / 24.04 LTS):** `cgroup v2` is enabled by default out of the box. No kernel parameters or host changes are required.

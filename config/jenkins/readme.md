@@ -91,7 +91,7 @@ Jenkins must sit on both the `cicd_network` and `kind` Docker networks:
     - kind
   ```
 
-1. Build the custom Jenkins image and launch all containers in the background:
+**Build the custom Jenkins image and launch all containers in the background:**
   ```sh
   docker compose up -d --build
   ```

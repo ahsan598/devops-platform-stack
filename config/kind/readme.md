@@ -8,14 +8,31 @@ The cluster simulates a production-grade topology locally on WSL2/Linux:
 - **3 Worker Nodes:** Executes workloads (Jenkins builds, Observability agents, and deployed microservices).
 - **Port Forwarding:** Binds host ports `30000-32767` directly to node ports, allowing direct access to cluster services (`Argo CD`, `Grafana`, `Prometheus`) via localhost.
 
-### 🌐 Mapped Service Ports Summary
+
+### 🌐 Mapped Service Ports Summary & Stack Overview
 Once deployed, NodePort services listening on these ports inside the cluster become accessible on your host machine:
 | Service Target | Container Port | Host Port |
 | :--- | :--- | :--- |
+| **Nginx** | `30080` | `30080` |
 | **ArgoCD** | `30082` | `30082` |
 | **Grafana** | `30030` | `30030` |
 | **Prometheus** | `30090` | `30090` |
 
+```txt
+                                [ KIND Cluster]
+                                      │
+    ┌──────────────────┬──────────────┼──────────────┬──────────────────┐
+    │ :30080           │ :30082       │ :30030       │ :30090           │
+    ▼                  ▼              ▼              ▼                  ▼
+┌─────────┐      ┌──────────┐   ┌──────────┐   ┌────────────┐   ┌───────────────┐
+│ Nginx   │      │ Argo CD  │   │ Grafana  │   │ Prometheus │   │  Metrics Top  │
+└─────────┘      └──────────┘   └──────────┘   └────────────┘   └───────────────┘
+                                      ▲              │
+                                      │ (Logs Query) │ (Metrics Query)
+                                ┌─────┴────┐         ▼
+                                │   Loki   │◄────[ Fluent Bit DaemonSet ]
+                                └──────────┘
+```
 
 ### 🚀 Cluster Provisioning
 

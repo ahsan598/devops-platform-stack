@@ -13,19 +13,19 @@ This repository serves as a central blueprint, organizing installation, configur
 ## 📂 Repository Structure
 ```text
 devops-platform-stack/
-├── assets/                 # Images and other visual assets
-├── config/                # Configuration files for platform tools and services
-├── docs/                   # Setup guides, prerequisites, and verification steps
-├── scripts/                # Installation, automation, maintenance, and cleanup scripts
-├── .gitignore            # Git ignore rules
-├── LICENSE               # Project license
-└── README.md        # Main project documentation
+├── assets/					# Images and other visual assets
+├── config/					# Configuration files for platform tools and services
+├── docs/					# Setup guides, prerequisites, and verification steps
+├── scripts/				# Installation, automation, maintenance, and cleanup scripts
+├── .gitignore				# Git ignore rules
+├── LICENSE					# Project license
+└── README.md				# Main project documentation
 ```
 
 ## 🛠️ Technology Stack Overview
 
 ### 💻 Application Development
-- **Java & Maven:** Enterprise backend runtime (OpenJDK 21 LTS) and build automation.
+- **Java & Maven:** Enterprise backend runtime and build automation.
 - **Node.js, npm:** JavaScript, TypeScript runtime and package manager 
   - **nvm:** Node.js version manager for installing and switching between Node.js versions.
 - **Python, pip & venv:** Automation scripting, package management, and isolated virtual environment utilities.
@@ -62,7 +62,7 @@ devops-platform-stack/
 ## ⚡ Quick Start
 
 ### 1. Prerequisites
-Ensure your local machine meets all hardware, WSL2, or Linux configuration requirements before starting the lab:
+Ensure your local machine meets all hardware requirements before starting the lab:
 ```sh
 # Clone the repository
 git clone https://github.com/ahsan598/devops-platform-stack.git
