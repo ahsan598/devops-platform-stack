@@ -13,13 +13,11 @@ This repository spins up a production-ready CI/CD environment comprising Jenkins
 ### 🏗️ Architectural & Design Decisions
 
 **1. Why a Custom Jenkins Image (`devops-jenkins:1.0`)?**
-
 The stock vanilla Jenkins image lacks essential build and DevOps tools out of the box. To prevent pipeline execution errors and avoid installing tools at runtime:
    - **Pre-baked CLI Tools:** Essential tools like **Docker CLI, Helm, Kubectl, and Trivy** are installed directly into the image layer.
    - **Exact Docker CLI Pinning:** To guarantee deterministic builds, the Docker CLI version is pinned to `5:27.5.1-1~debian.12~bookworm` fetched explicitly from the official [Debian Docker Repository](https://download.docker.com/linux/debian/) using Debian-12 (`bookworm`) package sources.
 
 **2. Docker Out of Docker (DooD) Setup**
-
 The Jenkins container is granted access to the host's Docker daemon to build container images inside pipelines:
   - **Socket Mounting:** The host socket `/var/run/docker.sock` is mounted directly into the container.
   - **Permission Alignment:** `group_add:` **[${DOCKER_GID}]** passes the host machine's Docker group ID to eliminate permission issues for the `jenkins` user.
@@ -29,7 +27,6 @@ The Jenkins container is granted access to the host's Docker daemon to build con
 - **Read-Only Kubeconfig:** The cluster config is mounted at `./jenkins-kubeconfig:/var/jenkins_home/.kube/config:ro` allowing automated deployment jobs to interact with Kubernetes securely.
 
 **4. Dedicated Database for SonarQube**
-
 SonarQube's default embedded **H2 database** is not intended for production usage:
   - A dedicated `postgres:17-alpine` service handles database persistence.
   - A strict `healthcheck` constraint is defined under `depends_on` to ensure SonarQube waits until PostgreSQL is fully ready to accept connections.
@@ -68,7 +65,6 @@ echo "DOCKER_GID=$(getent group docker | cut -d: -f3)" > .env
 Jenkins runs outside the Kind cluster as a Docker container. To enable `kubectl` deployments from Jenkins pipelines to your local Kind cluster, follow these 3 critical steps:
 
 **1. Isolated Kubeconfig Copy**
-
 Do not mount your host's `~/.kube/config` directly. Create a dedicated copy for Jenkins: 
 ```sh
 cp ~/.kube/config ./jenkins-kubeconfig
@@ -80,7 +76,6 @@ volumes:
 ```
 
 **2. Update API Server Endpoint**
-
 Inside the Jenkins container, `127.0.0.1` refers to the container itself.
 Edit `./jenkins-kubeconfig` and change the cluster server address:
 - Change from: `server: [https://127.0.0.1:<port:number>]`
@@ -89,18 +84,18 @@ Edit `./jenkins-kubeconfig` and change the cluster server address:
 - Keep all original CA certificates and token data unchanged.
 
 **3. Dual Network Attachment**
-
 Jenkins must sit on both the `cicd_network` and `kind` Docker networks:
-```sh
-networks:
-  - cicd_network
-  - kind
-```
+  ```sh
+  networks:
+    - cicd_network
+    - kind
+  ```
 
-4. Build the custom Jenkins image and launch all containers in the background:
+1. Build the custom Jenkins image and launch all containers in the background:
   ```sh
   docker compose up -d --build
   ```
+  ![build-image](/assets/jenkins-image.jpg)
 
 ### 🛠️ Verification Commands
 Validate Jenkins container access, Kubernetes connectivity, and Docker integration:
@@ -123,6 +118,7 @@ docker ps -a
 # 6. Verify Docker images
 docker images
 ```
+  ![jenkins-access](/assets/jenkins-verification.jpg)
 
 ### 🔐 Initial Credentials & Access Secrets
 After containers are up and running, fetch your initial passwords using the commands below:

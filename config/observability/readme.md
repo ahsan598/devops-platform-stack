@@ -1,23 +1,6 @@
 # 📊 Observability Stack Setup (Kind)
 A Kubernetes observability stack deployed on WSL2 using Kind (Kubernetes `v1.36+`). Features strict namespace isolation (`monitoring`, `logging`) with pinned helm releases for metrics collection, visualization, and zero-friction log ingestion.
 
-### 🏛️ Stack Overview
-```txt
-                              [ Local Host ]
-                                      │
-    ┌──────────────────┬──────────────┼──────────────┐
-    │ :30080           │ :30030       │ :30090       │
-    ▼                  ▼              ▼              ▼
-┌─────────┐      ┌──────────┐   ┌────────────┐   ┌───────────────┐
-│ Nginx   │      │ Grafana  │   │ Prometheus │   │  Metrics Top  │
-└─────────┘      └──────────┘   └────────────┘   └───────────────┘
-                      ▲               │
-                      │ (Logs Query)  │ (Metrics Query)
-                ┌─────┴────┐          ▼
-                │   Loki   │◄────[ Fluent Bit DaemonSet ]
-                └──────────┘
-```
-
 ### 📌 Access & Endpoints
 | Tool / Service | Namespace | Access URL / Internal Endpoint |
 | :--- | :--- | :--- |
@@ -58,6 +41,7 @@ kubectl rollout status deployment metrics-server -n kube-system
 kubectl top nodes
 kubectl top pods -A
 ```
+![metric-server](/assets/metric-server.jpg)
 
 ### 🪵 Step 3: Logging Stack (Loki + Fluent Bit)
 **1. Install Loki**
@@ -96,6 +80,7 @@ helm install fluent-bit fluent/fluent-bit \
 kubectl rollout restart daemonset fluent-bit -n logging
 kubectl get pods -n logging
 ```
+![logging](/assets/logging-pods.jpg)
 
 ### 🎯 Step 4: Monitoring Stack (kube-prometheus-stack)
 Deploys Prometheus, Grafana, Alertmanager, and Node Exporter with Loki pre-provisioned as a default log datasource.
@@ -128,6 +113,7 @@ kubectl exec -it -n monitoring deployment/prometheus-grafana -c grafana -- \
 kubectl get secret -n monitoring monitoring-grafana \
   -o jsonpath="{.data.admin-password}" | base64 -d; echo
 ```
+![monitoring](/assets/monitoring-pods.jpg)
 
 ### 🧪 Step 5: Log Forwarding Verification & Test Workflow
 Deploy a temporary container to generate test log entries:
@@ -149,3 +135,5 @@ kubectl delete pod log-test -n default
 3. Select Loki Data Source from the dropdown.
 4. Run LogQL Query: `{pod="log-test"}`
 5. Confirm that log lines `Loki integration test log line X` are stream-rendered under log analytics!
+
+![grafana-logs](/assets/grafana-logs.jpg)

@@ -13,11 +13,13 @@ This repository serves as a central blueprint, organizing installation, configur
 ## 📂 Repository Structure
 ```text
 devops-platform-stack/
-├── config/                 # Configuration files for platform tools and services
+├── assets/                 # Images and other visual assets
+├── config/                # Configuration files for platform tools and services
 ├── docs/                   # Setup guides, prerequisites, and verification steps
 ├── scripts/                # Installation, automation, maintenance, and cleanup scripts
-├── .gitignore              # Git ignore rules
-└── README.md               # Main project documentation
+├── .gitignore            # Git ignore rules
+├── LICENSE               # Project license
+└── README.md        # Main project documentation
 ```
 
 ## 🛠️ Technology Stack Overview
@@ -64,7 +66,8 @@ Ensure your local machine meets all hardware, WSL2, or Linux configuration requi
 ```sh
 # Clone the repository
 git clone https://github.com/ahsan598/devops-platform-stack.git
-cd devops-platform-stack
+
+cd devops-platform-stack/
 
 # View the prerequisites document in the terminal
 cat docs/prerequisites.md
@@ -76,3 +79,28 @@ Check all pinned versions across runtimes, container engines, and observability 
 # View all pinned versions
 cat docs/tools-version.md
 ```
+
+### 3. DevOps Tool Setup
+1. The `scripts/` contains installation or cleanup scripts for required tools and packages.
+   ```sh
+   # Navigate to installation scripts
+   cd scripts/install/
+
+   # Navigate to cleanup scripts
+   cd scripts/cleanup/
+   ```
+
+2. The `config/` directories contain the configuration setup required for each platform component
+   ```sh
+   # Navigate to GitOps configuration
+   cd config/gitops/
+
+   # Navigate to Jenkins configuration
+   cd config/jenkins/
+
+   # Navigate to Kind configuration
+   cd config/kind/
+
+   # Navigate to Observability configuration
+   cd config/observability/
+   ```

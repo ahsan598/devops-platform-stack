@@ -36,6 +36,7 @@ kubectl get pods -n argocd
 # 5. Check the NodePort exposure
 kubectl get svc argocd-server -n argocd
 ```
+![argo-pods](/assets/argocd-pods.jpg)
 
 2. Deploy Nginx demo application to ArgoCD
 ```sh

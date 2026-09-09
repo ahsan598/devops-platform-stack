@@ -19,6 +19,7 @@ sudo apt update && sudo apt upgrade -y
 uname -r
 cat /etc/os-release
 ```
+![os-details](/assets/os-requirements.jpg)
 
 ### 3. WSL2 Setup (Optional — Windows Users Only)
 If you are running on Windows via WSL2, create or update `%USERPROFILE%\.wslconfig` in Windows to allocate sufficient resources:
@@ -50,6 +51,7 @@ Kubernetes **v1.36+** (e.g., `v1.36.4`) requires **cgroup v2** for proper resour
   stat -fc %T /sys/fs/cgroup
   # Output must be: cgroup2fs
   ```
+  ![cgroup](/assets/wsl-cgroupv2.jpg)
 
 ### 5. Host System Tuning (`inotify` File Watch Limits)
 Observability tools like Fluent Bit, Prometheus, and Loki monitor a vast number of active log files and metrics streams. Increasing `inotify` limits prevents `too many open files` errors and log tailing exhaustion.

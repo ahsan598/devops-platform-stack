@@ -11,6 +11,18 @@ chmod +x scripts/install/*.sh
 ./scripts/install/04-container-tools.sh
 ```
 
+**01-core-tools.sh**
+![core-tools](/assets/install-core-tools.jpg)
+
+**02-runtimes.sh**
+![runtime-tools](/assets/runtime-tools.jpg)
+
+**03-devops-tools.sh**
+![devops-tools](/assets/devops-tools.jpg)
+
+**04-container-tools.sh**
+![container-tools](/assets/container-tools.jpg)
+
 ### 📋 Note
 - Tool versions are explicitly pinned where applicable to ensure reproducible environments.
 - **OS-Dependent Package Strings:** Certain package version strings depend directly on your Linux release/codename. For example, Docker package pinning varies by OS version.
