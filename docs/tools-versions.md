@@ -57,6 +57,7 @@
 | **Ansible Core** | Configuration Management | `v2.20.3` |
 | **Trivy** | Container & Vulnerability Scanner | `v0.71.1` |
 | **AWS CLI** | Cloud Management CLI | `v2.35.24` |
+| **ArgoCD CLI** | Application Management CLI | `v3.5.1` |
 | **Git** | Distributed Version Control | `v2.43.0` |
 | **JQ / YQ** | JSON & YAML Processors | `jq-1.7` / `v4.53.3` |
 | **GNU Make** | Build Automation | `v4.3` |

@@ -1,19 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: nginx-demo
+  name: nginx-app
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
 
   source:
     repoURL: https://github.com/ahsan598/devops-platform-stack.git
     targetRevision: HEAD
-    path: config/gitops/demo
+    path: config/gitops/manifests
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: dev
 
   syncPolicy:
     automated:
