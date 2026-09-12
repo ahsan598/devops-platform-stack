@@ -33,16 +33,16 @@ devops-platform-stack/
 
 ### 🔄 CI/CD & Artifact Management
 - **Jenkins:** Core continuous integration and pipeline engine.
-- **Argo CD:** GitOps-driven continuous delivery for Kubernetes.
 - **Nexus Repository:** Private registry for binaries and artifacts.
 - **SonarQube & PostgreSQL:** Automated code quality analysis (SAST) backed by Postgres DB
 
-### ⎈ Containerization & Orchestration
+### ⎈ Containerization, Orchestration & GitOps
 - **Docker, Compose & containerd:** Local container engine, multi-container orchestration, and core container runtime.
 - **Kubernetes (Kind):** Multi-node local Kubernetes clusters running over Docker.
 - **Helm & Kustomize:** Package management and declarative manifest customization for Kubernetes deployments.
+- **Argo CD:** GitOps-driven continuous delivery for Kubernetes.
 
-### 📊 Observability & Core Infrastructure
+### 📊 Observability Stack
 - **Prometheus & Metrics Server:** Infrastructure and application metric collection.
 - **Grafana:** Centralized visualization dashboards.
 - **Loki & Fluent Bit:** Log aggregation, routing, and parsing.
@@ -53,6 +53,7 @@ devops-platform-stack/
 
 ### 🧰 CLI Utilities
 - **AWS CLI:** Cloud resource management
+- **ArgoCD CLI:** Application deployment and management
 - **kubectl:** Kubernetes cluster control
 - **Trivy:** Vulnerability scanning for images and repositories.
 - **Git:** Distributed version control
@@ -71,14 +72,14 @@ git clone https://github.com/ahsan598/devops-platform-stack.git
 cd devops-platform-stack/
 
 # View the prerequisites document in the terminal
-cat docs/prerequisites.md
+cat docs/01-prerequisites.md
 ```
 
 ### 2. Inspect Verified Tool Matrix
 Check all pinned versions across runtimes, container engines, and observability stacks verified for this stack:
 ```sh
 # View all pinned versions
-cat docs/tools-version.md
+cat docs/00-tools-version.md
 ```
 
 ### 3. DevOps Tool Setup
@@ -91,7 +92,7 @@ cat docs/tools-version.md
    cd scripts/cleanup/
    ```
 
-2. The `config/` directories contain the configuration setup required for each platform component
+2. The `config/` contains the configuration setup required for each platform component
    ```sh
    # Navigate to GitOps configuration
    cd config/gitops/
@@ -104,4 +105,12 @@ cat docs/tools-version.md
 
    # Navigate to Observability configuration
    cd config/observability/
+   ```
+3. The `deployments/` contains the deployment configuartion for each tools
+   ```sh
+   # Navigate to Jenkins deployment
+   cd deployments/jenkins/
+
+   # Navigate to Kubernetes deployment
+   cd deployments/kubernetes/
    ```

@@ -23,7 +23,6 @@ Create and configure a Jenkins Freestyle job to automate the build, test, and de
    ```
 7. Click **Save**.
 
----
 
 ### 2. Declarative Pipeline Job Setup
 
