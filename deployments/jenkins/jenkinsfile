@@ -1,0 +1,147 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk21'
+        maven 'maven3'
+    }
+
+    environment {
+        IMAGE_NAME   = 'username/myapp'
+        GITOPS_REPO  = 'https://github.com/repo/gitops-manifests.git'
+        APP_NAMESPACE = 'webapps'
+    }
+
+    options {
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Checkout Source') { 
+            steps {
+                cleanWs()
+                git branch: 'main', 
+                    url: 'https://github.com/repo/repo_name.git',
+                    credentialsId: 'github-token'
+            }
+        }
+
+        stage('Code Compile & Test') {
+            steps {
+                sh "mvn clean test"
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonar') {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('OWASP Security Scan') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --format HTML --out dependency-check-report.html', 
+                                odcInstallation: 'DC'
+            }
+        }
+
+        stage('Build & Push Artifact') {
+            steps {
+                sh "mvn package -DskipTests=true"
+                withMaven(globalMavenSettingsConfig: 'global-maven', traceability: true) {
+                    sh "mvn deploy -DskipTests=true"
+                }
+            }
+        }
+
+        stage('Docker Build & Trivy Scan') {
+            steps {
+                script {
+                    sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -f docker/Dockerfile ."
+                    // Security Scan
+                    sh "trivy image --format table -o trivy-image-report.html ${IMAGE_NAME}:${BUILD_NUMBER}"
+                }
+            }
+        }
+
+        stage('Push Image to Registry') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker-cred') {
+                        sh "docker push ${IMAGE_NAME}:${BUILD_NUMBER}"
+                    }
+                }
+            }
+        }
+
+        stage('GitOps Deployment Update') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                    sh """
+                        git config --global user.email "jenkins@devops-workbench.local"
+                        git config --global user.name "Jenkins CI"
+                        
+                        # Clone manifest repo & update image tag
+                        git clone ${GITOPS_REPO} gitops-repo
+                        cd gitops-repo
+
+                        # Dynamic update in deployment manifest
+                        sed -i 's|image: ${IMAGE_NAME}:.*|image: ${IMAGE_NAME}:${BUILD_NUMBER}|g' manifest/deployment.yaml
+                        
+                        git add manifest/deployment.yaml
+                        git commit -m "chore(ci): update image tag to ${BUILD_NUMBER} [skip ci]" || echo "No changes to commit"
+                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/repo/gitops-manifests.git HEAD:main
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Build #${BUILD_NUMBER} pushed to GitOps. Argo CD will sync to Kubernetes automatically!"
+            emailext (
+                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """<h3>Build Completed Successfully</h3>
+                         <p>Image Tag: <b>${IMAGE_NAME}:${env.BUILD_NUMBER}</b></p>
+                         <p>Console Log: <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>""",
+                to: "team@example.com",
+                mimeType: 'text/html'
+            )
+        }
+
+        failure {
+            echo "Build #${BUILD_NUMBER} Failed!"
+            emailext (
+                subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """<h3>Build Failed</h3>
+                         <p>Console Log: <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>""",
+                to: "team@example.com",
+                mimeType: 'text/html'
+            )
+        }
+
+        always {
+            echo 'Archiving Reports & Cleaning Workspace...'
+            archiveArtifacts artifacts: '**/trivy-image-report.html, **/dependency-check-report.html', allowEmptyArchive: true
+            cleanWs()
+        }
+    }
+}

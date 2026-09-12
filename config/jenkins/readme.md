@@ -127,6 +127,7 @@ After containers are up and running, fetch your initial passwords using the comm
   - URL: http://localhost:8080
   - Default User: `admin`
   - Password Command: `docker exec -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword`
+  - Refer to this file for Jenkins [configuration and plugin setup](/docs/02-jenkins-configuration.md)
 
 **2. SonarQube**
   - URL: http://localhost:9000

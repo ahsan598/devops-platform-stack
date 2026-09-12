@@ -15,6 +15,7 @@ This repository serves as a central blueprint, organizing installation, configur
 devops-platform-stack/
 ├── assets/					# Images and other visual assets
 ├── config/					# Configuration files for platform tools and services
+├── deployments/			# Deployment manifests, and deployment-related files
 ├── docs/					# Setup guides, prerequisites, and verification steps
 ├── scripts/				# Installation, automation, maintenance, and cleanup scripts
 ├── .gitignore				# Git ignore rules

@@ -4,10 +4,10 @@ metadata:
   name: nginx-app
   namespace: argocd
   finalizers:
-    - argocd.argoproj.io/resources-finalizer
+    - resources-finalizer.argocd.argoproj.io
+
 spec:
   project: default
-
   source:
     repoURL: https://github.com/ahsan598/devops-platform-stack.git
     targetRevision: HEAD

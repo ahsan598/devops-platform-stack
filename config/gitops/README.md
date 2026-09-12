@@ -71,11 +71,15 @@ curl -I http://localhost:30080
 # Delete the Argo CD Application resource
 kubectl delete -f gitops/apps/nginx-app.yaml
 
+# Force delete stuck Argo CD application by stripping finalizers
+kubectl patch app nginx-app -n argocd -p '{"metadata":{"finalizers":null}}' --type=merge
+
 # Verify pods & service are terminated
 kubectl get pods -n dev -l app=nginx-app
 kubectl get svc nginx-app -n dev
 ```
 
+---
 
 # 🛠️ GitOps CLI Operations (Optional)
 While Argo CD operates declaratively via Git commits and the Web UI, the **Argo CD CLI** is useful for scripting, manual triggers, and integrating with CI/CD runners (e.g., Jenkins, GitHub Actions).
