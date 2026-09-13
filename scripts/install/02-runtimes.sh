@@ -8,9 +8,23 @@ echo "==============================================="
 # 1. Update Package Index
 sudo apt update
 
-# 2. Install Java 21 LTS + Maven
-echo "Installing Java 21 LTS & Maven..."
-sudo apt install -y openjdk-21-jdk maven
+# 2. Install Java 21 LTS & Maven 3.9.9
+echo "Installing Java 21 LTS..."
+sudo apt install -y openjdk-21-jdk
+
+echo "Installing Apache Maven 3.9.9..."
+MAVEN_VERSION="3.9.9"
+
+# Download official binary release
+curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz -o /tmp/apache-maven.tar.gz
+
+# Extract to /opt and cleanup tarball
+sudo tar -xzf /tmp/apache-maven.tar.gz -C /opt
+rm -f /tmp/apache-maven.tar.gz
+
+# Create symlinks for binary path integration
+sudo ln -sfn /opt/apache-maven-${MAVEN_VERSION} /opt/maven
+sudo ln -sfn /opt/maven/bin/mvn /usr/local/bin/mvn
 
 # 3. Install Python 3, Pip, and Venv Stack
 echo "Installing Python 3 & environment utilities..."

@@ -117,6 +117,9 @@ docker ps -a
 
 # 6. Verify Docker images
 docker images
+
+# Identify the Java path configured in Jenkins
+echo $JAVA_HOME
 ```
   ![jenkins-access](/assets/jenkins-verification.jpg)
 

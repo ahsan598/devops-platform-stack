@@ -7,11 +7,11 @@ Jenkin's base installation does not include support for some critical DevOps too
 
 | Plugin Category | Plugin Name | Purpose |
 | :--- | :--- | :--- |
-| **Pipeline & UI** | `Pipeline` | Core Declarative & Scripted pipeline engine |
+| **Pipeline & UI** | `Pipeline Stage View` | Visual representation of pipeline stages and execution status |
 | **Container & K8s** | `Docker Pipeline`, `Kubernetes` | Ephemeral container agents & Docker build stages |
-| **SCM & Cloud** | `GitHub Integration`, `Pipeline: AWS Steps` | Git webhooks & AWS credential/CLI operations |
-| **Build & Config** | `Pipeline Maven Integration`, `Config File Provider` | Automated Maven builds & global `settings.xml` injection |
-| **Security & Quality** | `Credentials Binding`, `SonarQube Scanner` | Secure secret injection & static code analysis / quality gates |
+| **SCM & Cloud** | `GitHub Integration`, `Pipeline: AWS Steps`, `AWS Credentials` | Git webhooks, AWS credentials management (IAM), and AWS CLI pipeline steps |
+| **Build & Config** | `Pipeline Maven Integration`, `Config File Provider`, `Eclipse Temurin Installer` | Automated Maven builds, global `settings.xml` management & dynamic JDK (JDK 8/17) auto-installation |
+| **Security & Quality** | `SonarQube Scanner`, `OWASP Dependency-Check` | Static code analysis, quality gates & dependency vulnerability scanning |
 
 
 ### 🔌 2. Installing Plugins

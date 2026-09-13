@@ -22,11 +22,14 @@ sed -i '/bash_completion/d' ~/.bashrc ~/.profile ~/.bash_profile ~/.zshrc 2>/dev
 unset NVM_DIR NVM_BIN NVM_INC NVM_CD_FLAGS 2>/dev/null || true
 hash -r 2>/dev/null || true
 
-# 2. Purge Java 21 LTS, Maven, and Python Stack
-echo "Purging Java, Maven, and Python 3 stack..."
+# 2. Remove Custom Manual Maven 3.9.9 Tarball & Symlinks
+echo "Purging manually installed Apache Maven 3.9.9 binaries & symlinks..."
+sudo rm -rf /opt/apache-maven-* /opt/maven /usr/local/bin/mvn
+
+# 3. Purge JDK 21 and Python Stack from APT
+echo "Purging Java 21 LTS and Python 3 stack..."
 sudo apt purge -y \
-  openjdk-21-jdk openjdk-21-jre-headless \
-  maven \
+  openjdk-21-jdk openjdk-21-jdk-headless openjdk-21-jre-headless \
   python3-pip \
   python3-venv \
   python3-full || true

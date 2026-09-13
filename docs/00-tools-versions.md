@@ -17,7 +17,7 @@
 | **Node.js Runtime** | Node.js | `v22.23.1 LTS` |
 | **Package Managers** | nvm / npm | `v0.40.3` / `v10.9.8` |
 | | pip | `v24.0` |
-| **Build Tool** | Apache Maven | `v3.8.7` |
+| **Build Tool** | Apache Maven | `v3.9.9` |
 
 
 ### 2. Containers & Local Kubernetes
