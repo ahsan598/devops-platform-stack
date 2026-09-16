@@ -64,23 +64,23 @@ devops-platform-stack/
 ## ⚡ Quick Start
 
 ### 1. Prerequisites
-Ensure your local machine meets all hardware requirements before starting the lab:
-```sh
-# Clone the repository
-git clone https://github.com/ahsan598/devops-platform-stack.git
+- Ensure your local machine meets all hardware requirements before starting the lab:
+  ```sh
+  # Clone the repository
+  git clone https://github.com/ahsan598/devops-platform-stack.git
 
-cd devops-platform-stack/
+  cd devops-platform-stack/
 
-# View the prerequisites document in the terminal
-cat docs/01-prerequisites.md
-```
+  # View the prerequisites document in the terminal
+  cat docs/01-prerequisites.md
+  ```
 
 ### 2. Inspect Verified Tool Matrix
-Check all pinned versions across runtimes, container engines, and observability stacks verified for this stack:
-```sh
-# View all pinned versions
-cat docs/00-tools-version.md
-```
+- Check all pinned versions across runtimes, container engines, and observability stacks verified for this stack:
+  ```sh
+  # View all pinned versions
+  cat docs/00-tools-version.md
+  ```
 
 ### 3. DevOps Tool Setup
 1. The `scripts/` contains installation or cleanup scripts for required tools and packages.

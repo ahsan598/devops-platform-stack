@@ -25,7 +25,7 @@ Jenkin's base installation does not include support for some critical DevOps too
 ### 🛠️ 3. Global Tool Configuration (Tools)
 Configure default binary paths for runtimes and compilers (JDK, Git, Maven, Docker, Terraform).
 1. Navigate to **Manage Jenkins → Tools** (formerly **Global Tool Configuration**).
-2. Scroll to the desired tool section (**JDK, Git, Maven, or Docker**).
+2. Scroll to the desired tool section (**JDK, Git, Maven, DP-Check or Docker**).
 3. Click **Add [Tool Name]:**
    - **Name:** Set a standard reference name (e.g., `JDK-17`, `Maven-3.8`).
    - **Installation Source**: Choose Install automatically OR provide the explicit path under `JAVA_HOME /` Path to Git executable on the host agent.

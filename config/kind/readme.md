@@ -45,12 +45,17 @@ kind create cluster \
   --image kindest/node:v1.36.4
 ```
 
+> [!CAUTION]
+> **Kind clusters cannot be upgraded in-place across Kubernetes versions (for example, v1.35 → v1.36 → v1.37) using the standard `kubeadm` upgrade workflow.** For Kind, upgrading to a different Kubernetes version requires **re-creating the cluster with the desired `kindest/node` image**.
+>
+> For learning and practice, you can continue using an existing Kubernetes version (for example, **v1.36.4**) for as long as needed. When you want to practice another Kubernetes version, create a new Kind cluster using the corresponding `kindest/node` image.
+
 **2. Verify Deployment**
 Check that all 4 nodes are in the `Ready` state:
 ```sh
 kubectl get nodes -o wide
 ```
-![kind](/assets/kind-nodes.jpg)
+![kind](/assets/kind/kind-nodes.jpg)
 
 **3. Manage Contexts**
 ```sh

@@ -7,13 +7,13 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME   = 'username/myapp'
-        GITOPS_REPO  = 'https://github.com/repo/gitops-manifests.git'
+        IMAGE_NAME    = 'username/myapp' // Replace with your actual Docker Hub username/app
+        GITOPS_REPO   = 'https://github.com/repo/gitops-manifests.git'
         APP_NAMESPACE = 'webapps'
     }
 
     options {
-        timeout(time: 15, unit: 'MINUTES')
+        timeout(time: 20, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '5'))
         disableConcurrentBuilds()
     }
@@ -41,32 +41,42 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonar') {
-                    sh 'mvn sonar:sonar'
+                // FIXED: Matched UI server name 'sonar-server' & Maven scanner plugin call
+                withSonarQubeEnv('sonar-server') {
+                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar'
                 }
             }
         }
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                timeout(time: 2, unit: 'MINUTES') {
+                    script {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "Pipeline aborted: Quality Gate failed with status [${qg.status}]"
+                        } else {
+                            echo "Quality Gate Passed Successfully!"
+                        }
+                    }
                 }
             }
         }
 
         stage('OWASP Security Scan') {
             steps {
-                dependencyCheck additionalArguments: '--scan ./ --format HTML --out dependency-check-report.html', 
-                                odcInstallation: 'DC'
+                // Keep --noupdate flag active if NVD download is too slow
+                dependencyCheck additionalArguments: '--scan ./ --format HTML --out dependency-check-report.html --noupdate', 
+                                odcInstallation: 'DP-Check'
             }
         }
 
         stage('Build & Push Artifact') {
             steps {
-                sh "mvn package -DskipTests=true"
-                withMaven(globalMavenSettingsConfig: 'global-maven', traceability: true) {
-                    sh "mvn deploy -DskipTests=true"
+                withCredentials([usernamePassword(credentialsId: 'nexus-cred', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
+                    withMaven(globalMavenSettingsConfig: 'global-maven', traceability: true) {
+                        sh 'mvn clean deploy -DskipTests=true -Dnexus.username=$NEXUS_USERNAME -Dnexus.password=$NEXUS_PASSWORD'
+                    }
                 }
             }
         }
@@ -74,9 +84,11 @@ pipeline {
         stage('Docker Build & Trivy Scan') {
             steps {
                 script {
-                    sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -f docker/Dockerfile ."
-                    // Security Scan
-                    sh "trivy image --format table -o trivy-image-report.html ${IMAGE_NAME}:${BUILD_NUMBER}"
+                    // FIXED: Pointing directly to root Dockerfile
+                    sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -f Dockerfile ."
+                    
+                    // Security Scan via Trivy
+                    sh "trivy image --severity HIGH,CRITICAL --exit-code 0 ${IMAGE_NAME}:${BUILD_NUMBER}"
                 }
             }
         }
@@ -98,7 +110,8 @@ pipeline {
                         git config --global user.email "jenkins@devops-workbench.local"
                         git config --global user.name "Jenkins CI"
                         
-                        # Clone manifest repo & update image tag
+                        # FIXED: Remove existing directory before fresh clone
+                        rm -rf gitops-repo
                         git clone ${GITOPS_REPO} gitops-repo
                         cd gitops-repo
 
@@ -115,33 +128,18 @@ pipeline {
     }
 
     post {
+        always {
+            echo 'Archiving Security & Coverage Reports...'
+            archiveArtifacts artifacts: '**/dependency-check-report.html', allowEmptyArchive: true
+            cleanWs()
+        }
+        
         success {
-            echo "Build #${BUILD_NUMBER} pushed to GitOps. Argo CD will sync to Kubernetes automatically!"
-            emailext (
-                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """<h3>Build Completed Successfully</h3>
-                         <p>Image Tag: <b>${IMAGE_NAME}:${env.BUILD_NUMBER}</b></p>
-                         <p>Console Log: <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>""",
-                to: "team@example.com",
-                mimeType: 'text/html'
-            )
+            echo "Build #${BUILD_NUMBER} completed successfully!"
         }
 
         failure {
             echo "Build #${BUILD_NUMBER} Failed!"
-            emailext (
-                subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """<h3>Build Failed</h3>
-                         <p>Console Log: <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>""",
-                to: "team@example.com",
-                mimeType: 'text/html'
-            )
-        }
-
-        always {
-            echo 'Archiving Reports & Cleaning Workspace...'
-            archiveArtifacts artifacts: '**/trivy-image-report.html, **/dependency-check-report.html', allowEmptyArchive: true
-            cleanWs()
         }
     }
 }

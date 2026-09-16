@@ -8,7 +8,6 @@ A Kubernetes observability stack deployed on WSL2 using Kind (Kubernetes `v1.36+
 | **Prometheus UI** | `monitoring` | `http://localhost:30090` |
 | **Loki Engine** | `logging` | `http://loki.logging.svc.cluster.local:3100` |
 | **Fluent Bit** | `logging` | DaemonSet |
-| **Nginx App** | - | `http://localhost:30080` |
 
 
 ### 🛠️ Step 1: Namespace Initialization
@@ -41,7 +40,7 @@ kubectl rollout status deployment metrics-server -n kube-system
 kubectl top nodes
 kubectl top pods -A
 ```
-![metric-server](/assets/metric-server.jpg)
+![metric-server](/assets/observability/metric-server.jpg)
 
 ### 🪵 Step 3: Logging Stack (Loki + Fluent Bit)
 **1. Install Loki**
@@ -75,12 +74,19 @@ helm install fluent-bit fluent/fluent-bit \
   --namespace logging \
   --version 0.58.0 \
   -f config/observability/fluent-bit/values.yaml
-
-# 4. Restart DaemonSet to hook inotify handles
-kubectl rollout restart daemonset fluent-bit -n logging
-kubectl get pods -n logging
 ```
-![logging](/assets/logging-pods.jpg)
+![logging](/assets/observability/logging-pods.jpg)
+
+> [!NOTE]
+> **One-time step:** After updating the `inotify` limits, restart the Fluent Bit DaemonSet **once** so that the pods pick up the updated inotify handle limits.
+>
+> ```sh
+> # Restart DaemonSet to pick up updated inotify limits
+> kubectl rollout restart daemonset fluent-bit -n logging
+>
+> # Verify Fluent Bit pods
+> kubectl get pods -n logging
+> ```
 
 ### 🎯 Step 4: Monitoring Stack (kube-prometheus-stack)
 Deploys Prometheus, Grafana, Alertmanager, and Node Exporter with Loki pre-provisioned as a default log datasource.
@@ -102,7 +108,7 @@ helm install prometheus prometheus-community/kube-prometheus-stack \
   --set prometheus.service.nodePort=30090 \
   --set "grafana.additionalDataSources[0].name=Loki" \
   --set "grafana.additionalDataSources[0].type=loki" \
-  --set "grafana.additionalDataSources[0].url=[http://loki.logging.svc.cluster.local:3100](http://loki.logging.svc.cluster.local:3100)" \
+  --set "grafana.additionalDataSources[0].url=http://loki.logging.svc.cluster.local:3100" \
   --set "grafana.additionalDataSources[0].access=proxy"
 
 # 4. Verify Loki Health & Cross-Namespace DNS
@@ -113,9 +119,9 @@ kubectl exec -it -n monitoring deployment/prometheus-grafana -c grafana -- \
 kubectl get secret -n monitoring monitoring-grafana \
   -o jsonpath="{.data.admin-password}" | base64 -d; echo
 ```
-![monitoring](/assets/monitoring-pods.jpg)
+![monitoring](/assets/observability/monitoring-pods.jpg)
 
-### 🧪 Step 5: Log Forwarding Verification & Test Workflow
+### 🧪 Log Forwarding Verification & Test Workflow
 Deploy a temporary container to generate test log entries:
 ```sh
 # 1. Execute Log Generator Pod
@@ -136,4 +142,4 @@ kubectl delete pod log-test -n default
 4. Run LogQL Query: `{pod="log-test"}`
 5. Confirm that log lines `Loki integration test log line X` are stream-rendered under log analytics!
 
-![grafana-logs](/assets/grafana-logs.jpg)
+![grafana-logs](/assets/observability/grafana-logs.jpg)

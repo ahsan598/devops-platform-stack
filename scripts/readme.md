@@ -12,16 +12,16 @@ chmod +x scripts/install/*.sh
 ```
 
 **01-core-tools.sh**
-![core-tools](/assets/install-core-tools.jpg)
+![core-tools](/assets/scripts/install-core-tools.jpg)
 
 **02-runtimes.sh**
-![runtime-tools](/assets/runtime-tools.jpg)
+![runtime-tools](/assets/scripts/runtime-tools.jpg)
 
 **03-devops-tools.sh**
-![devops-tools](/assets/devops-tools.jpg)
+![devops-tools](/assets/scripts/devops-tools.jpg)
 
 **04-container-tools.sh**
-![container-tools](/assets/container-tools.jpg)
+![container-tools](/assets/scripts/container-tools.jpg)
 
 ### 📋 Note
 - Tool versions are explicitly pinned where applicable to ensure reproducible environments.
@@ -46,7 +46,7 @@ chmod +x scripts/install/*.sh
 
 - After running `04-container-tools.sh`, refresh your group membership by running `newgrp docker` (or restart your terminal) to run Docker without `sudo`.
 
-## 🔒 Optional: Lock Tool Versions (Prevent Auto-Upgrades)
+## 🔒 Lock Tool Versions (Prevent Auto-Upgrades)
 To prevent package managers from accidentally upgrading production-critical binaries during routine `apt upgrade` runs:
 ```sh
 # Hold Docker and Trivy versions

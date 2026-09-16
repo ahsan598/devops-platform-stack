@@ -45,35 +45,36 @@ Persistent volumes prevent data loss when containers are stopped or recreated:
 4. Build Jenkins Image & Deploy Stack (`docker compose up -d --build`)
 5. Verify Integrations (`kubectl get nodes` inside Jenkins)
 
+---
 
 ### ⚡ Quick Start
 1. Create required external Docker networks:
-```sh
-# Navigate to the Jenkins configuration directory
-cd devops-platform-stack/config/jenkins
+   ```sh
+   # Navigate to the Jenkins configuration directory
+   cd devops-platform-stack/config/jenkins
 
-# create docker networks
-docker network create cicd_network
-docker network create kind
-```
+   # create docker networks
+   docker network create cicd_network
+   docker network create kind
+   ```
 2. Set the host Docker GID in your `.env` file:
-```sh
-echo "DOCKER_GID=$(getent group docker | cut -d: -f3)" > .env
-```
+   ```sh
+   echo "DOCKER_GID=$(getent group docker | cut -d: -f3)" > .env
+   ```
 
-### 🔗 Jenkins to Kind Kubernetes Integration
+### ⚙️ Jenkins to Kind Kubernetes Integration
 Jenkins runs outside the Kind cluster as a Docker container. To enable `kubectl` deployments from Jenkins pipelines to your local Kind cluster, follow these 3 critical steps:
 
 **1. Isolated Kubeconfig Copy**
-Do not mount your host's `~/.kube/config` directly. Create a dedicated copy for Jenkins: 
-```sh
-cp ~/.kube/config ./jenkins-kubeconfig
-```
-Mount this copy as read-only in `docker-compose.yml`:
-```sh
-volumes:
-  - ./jenkins-kubeconfig:/var/jenkins_home/.kube/config:ro
-```
+- Do not mount your host's `~/.kube/config` directly. Create a dedicated copy for Jenkins: 
+   ```sh
+   cp ~/.kube/config ./jenkins-kubeconfig
+   ```
+- Mount this copy as read-only in `docker-compose.yml`:
+  ```sh
+  volumes:
+    - ./jenkins-kubeconfig:/var/jenkins_home/.kube/config:ro
+  ```
 
 **2. Update API Server Endpoint**
 Inside the Jenkins container, `127.0.0.1` refers to the container itself.
@@ -84,44 +85,74 @@ Edit `./jenkins-kubeconfig` and change the cluster server address:
 - Keep all original CA certificates and token data unchanged.
 
 **3. Dual Network Attachment**
-Jenkins must sit on both the `cicd_network` and `kind` Docker networks:
+- Jenkins must sit on both the `cicd_network` and `kind` Docker networks:
   ```sh
   networks:
     - cicd_network
     - kind
   ```
 
-**Build the custom Jenkins image and launch all containers in the background:**
+### 📦 Build Custom Image
+Build the custom Jenkins image and launch all containers in the background
   ```sh
   docker compose up -d --build
   ```
-  ![build-image](/assets/jenkins-image.jpg)
+  ![build-image](/assets/jenkins/jenkins-image.jpg)
 
-### 🛠️ Verification Commands
-Validate Jenkins container access, Kubernetes connectivity, and Docker integration:
-```sh
-# 1. Access Jenkins container shell
-docker exec -it jenkins bash
+### ✅ Validate Tool Connectivity
+Verify access to Kubernetes, Docker, Nexus, SonarQube and tools installed from within the Jenkins container
 
-# 2. Verify Kubernetes API server reachability
-curl -k https://dev-cluster-control-plane:6443/version
+1. Cluster & Access Verification
+   ```sh
+   # Container Shell Access
+   docker exec -it jenkins bash
 
-# 3. Verify kubectl context
-kubectl config current-context
+   # Kubernetes API Reachability
+   curl -k https://dev-cluster-control-plane:6443/version
 
-# 4. Verify Kubernetes node visibility
-kubectl get nodes
+   # Kubernetes Cluster Status
+   kubectl config current-context
+   kubectl get nodes
+   ```
 
-# 5. Verify Docker container access
-docker ps -a
+2. Docker Daemon Verification
+   ```sh
+   # Container & Image Status
+   docker ps -a
+   docker images
+   ```
+   ![jenkins-access](/assets/jenkins/jenkins-tools-verification.jpg)
 
-# 6. Verify Docker images
-docker images
+3. Installed Tool Versions
+   ```sh
+   # Verify installed tools version
+   echo "=== Checking Installed Tool Versions ==="
+   echo -n "Java: " && java -version 2>&1 | head -n 1
+   echo -n "Git: " && git --version
+   echo -n "Docker: " && docker --version
+   echo -n "Kubectl: " && kubectl version --client --short 2>/dev/null || kubectl version --client
+   echo -n "Helm: " && helm version --short
+   echo -n "Trivy: " && trivy --version
+   ```
+   ![jenkins-access](/assets/jenkins/jenkins-tools-verification-2.jpg)
 
-# Identify the Java path configured in Jenkins
-echo $JAVA_HOME
-```
-  ![jenkins-access](/assets/jenkins-verification.jpg)
+4. Environment & Network Verification
+   ```sh
+   # 1. Identify Java Installation Path
+   echo "JAVA_HOME: $JAVA_HOME"
+
+   # 2. Verify SonarQube Reachability
+   curl -s -I http://sonarqube:9000 | head -n 1
+   # Expected: HTTP/1.1 200 OK
+
+   # 3. Verify Nexus Status API Reachability
+   curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" -u "<username>:<password>" http:nexus:8081/service/rest/v1/status
+   # Expected: HTTP Status: 200
+
+   # OR
+   curl -v -u "<username>:<password>" http://nexus:8081/service/rest/v1/status
+   ```
+   ![server-access](/assets/jenkins/jenkins-server-access.jpg)
 
 ### 🔐 Initial Credentials & Access Secrets
 After containers are up and running, fetch your initial passwords using the commands below:
@@ -141,6 +172,8 @@ After containers are up and running, fetch your initial passwords using the comm
   - URL: http://localhost:8081
   - Default User: `admin`
   - Password Command: `docker exec -it nexus cat /nexus-data/admin.password`
+
+---
 
 ### ⚠️ Troubleshooting Common Pitfalls
 | Issue | Root Cause | Exact Fix |
