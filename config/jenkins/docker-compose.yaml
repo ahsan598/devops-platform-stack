@@ -1,7 +1,7 @@
 # ==============================================================================
 # Docker Compose Configuration for DevOps Platform Stack
-# This configuration sets up a CI/CD environment with Jenkins, SonarQube, Nexus, and PostgreSQL,
-# along with the necessary networks and volumes for persistent data storage.
+# This configuration sets up a CI/CD environment with Jenkins, SonarQube,
+# Nexus, and PostgreSQL, along with the necessary networks and volumes for persistent data storage.
 # ==============================================================================
 
 services:
@@ -35,7 +35,7 @@ services:
     environment:
       - JAVA_OPTS=-Xms512m -Xmx2048m
 
-    #  Memory optimization and resource limits to prevent Jenkins from consuming excessive host resources
+    #  Resource limits to prevent Jenkins from consuming excessive host resources
     deploy:
       resources:
         limits:
@@ -49,7 +49,7 @@ services:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - './jenkins-kubeconfig:/var/jenkins_home/.kube/config:ro'
 
-    # Connect Jenkins to both the public-facing CI/CD network and the internal Kubernetes Kind network
+    # Connect Jenkins to both the public-facing 'cicd_network' and the internal Kubernetes 'kind` network
     networks:
       - cicd_network
       - kind
@@ -60,7 +60,8 @@ services:
 
   # ============================================================================
   # SonarQube Code Quality and Security Analysis Server
-  # Note: SonarQube is connected to both 'cicd_network' (for Jenkins access) and 'db_network' (for PostgreSQL DB access)
+  # Note: SonarQube is connected to both 'cicd_network' (for Jenkins access)
+  # and 'db_network' (for PostgreSQL DB access)
   # ============================================================================
   sonarqube:
     image: 'sonarqube:community'
@@ -94,20 +95,21 @@ services:
         soft: 65536
         hard: 65536
 
-    # Memory optimization and resource limits to prevent SonarQube from consuming excessive host resources
+    # Resource limits to prevent SonarQube from consuming excessive host resources
     deploy:
       resources:
         limits:
           memory: 2048M
 
-    # Connect SonarQube to both the public-facing CI/CD network and the internal database network for secure communication with PostgreSQL
+    # Connect SonarQube to both the public-facing 'cicd_network' for Jenkins access and the internal 'db_network' for PostgreSQL database access
     networks:
       - cicd_network
       - db_network
 
   # ======================================================================================================
   # SonarQube Database (PostgreSQL)
-  # Note: The PostgreSQL database is isolated on the internal 'db_network' to prevent external access and enhance security. It is only accessible by SonarQube.
+  # Note: The PostgreSQL database is isolated on the internal 'db_network' to prevent external access
+  # and enhance security. It is only accessible by SonarQube.
   # ======================================================================================================
   sonarqube_db:
     image: 'postgres:17-alpine'
@@ -124,11 +126,11 @@ services:
     volumes:
       - 'sonarqube_db_data:/var/lib/postgresql/data'
 
-	# Connect the PostgreSQL database to the internal 'db_network' to isolate it from external access and allow secure communication with SonarQube
+	# Connect the PostgreSQL database to the internal 'db_network' to isolate it from external access
     networks:
       - db_network
 
-    # Health check configuration to ensure that the PostgreSQL database is ready before SonarQube attempts to connect, preventing connection errors during startup
+    # Health check configuration to ensure that the PostgreSQL database is ready before SonarQube attempts to connect
     healthcheck:
       test:
         - CMD-SHELL
@@ -139,7 +141,8 @@ services:
 
   # ============================================================================
   # Nexus Repository Manager
-  # Note: Nexus is connected to the public-facing 'cicd_network' to allow access from Jenkins and other CI/CD tools.
+  # Note: Nexus is connected to the public-facing 'cicd_network' to allow
+  # access from Jenkins and other CI/CD tools.
   # ============================================================================
   nexus:
     image: 'sonatype/nexus3:3.87.2'
@@ -158,7 +161,7 @@ services:
     networks:
       - cicd_network
 
-    # Memory optimization resource limits to prevent Nexus from consuming excessive host resources
+    # Resource limits to prevent Nexus from consuming excessive host resources
     deploy:
       resources:
         limits:
@@ -168,7 +171,8 @@ services:
 
 # ================================================================================================
 # Persistent Volumes
-# Note: These volumes are used to persist data for Jenkins, SonarQube, PostgreSQL database, and Nexus across container restarts and updates.
+# Note: These volumes are used to persist data for Jenkins, SonarQube, PostgreSQL database,
+# and Nexus across container restarts and updates.
 # ================================================================================================
 volumes:
   jenkins_data:
