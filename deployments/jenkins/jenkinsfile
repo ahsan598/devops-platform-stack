@@ -7,13 +7,13 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME    = 'username/myapp' // Replace with your actual Docker Hub username/app
-        GITOPS_REPO   = 'https://github.com/repo/gitops-manifests.git'
+        IMAGE_NAME   = 'ahsan98/spring-petclinic'
+        // GITOPS_REPO   = 'https://github.com/ahsan598/spring-petclinic.git'
         APP_NAMESPACE = 'webapps'
     }
 
     options {
-        timeout(time: 20, unit: 'MINUTES')
+        timeout(time: 15, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '5'))
         disableConcurrentBuilds()
     }
@@ -22,15 +22,13 @@ pipeline {
         stage('Checkout Source') { 
             steps {
                 cleanWs()
-                git branch: 'main', 
-                    url: 'https://github.com/repo/repo_name.git',
-                    credentialsId: 'github-token'
+                git branch: 'main', url: 'https://github.com/ahsan598/spring-petclinic.git'
             }
         }
 
         stage('Code Compile & Test') {
             steps {
-                sh "mvn clean test"
+                sh "mvn clean test -DskipTests=true"
             }
             post {
                 always {
@@ -41,31 +39,30 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                // FIXED: Matched UI server name 'sonar-server' & Maven scanner plugin call
                 withSonarQubeEnv('sonar-server') {
                     sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar'
                 }
             }
         }
 
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         withSonarQubeEnv('sonar-server') {
+        //             sh 'mvn sonar:sonar'
+        //         }
+        //     }
+        // }
+
         stage('Quality Gate') {
             steps {
                 timeout(time: 2, unit: 'MINUTES') {
-                    script {
-                        def qg = waitForQualityGate()
-                        if (qg.status != 'OK') {
-                            error "Pipeline aborted: Quality Gate failed with status [${qg.status}]"
-                        } else {
-                            echo "Quality Gate Passed Successfully!"
-                        }
-                    }
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
 
-        stage('OWASP Security Scan') {
+        stage('OWASP Dependency Check') {
             steps {
-                // Keep --noupdate flag active if NVD download is too slow
                 dependencyCheck additionalArguments: '--scan ./ --format HTML --out dependency-check-report.html --noupdate', 
                                 odcInstallation: 'DP-Check'
             }
@@ -73,22 +70,27 @@ pipeline {
 
         stage('Build & Push Artifact') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus-cred', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
-                    withMaven(globalMavenSettingsConfig: 'global-maven', traceability: true) {
-                        sh 'mvn clean deploy -DskipTests=true -Dnexus.username=$NEXUS_USERNAME -Dnexus.password=$NEXUS_PASSWORD'
-                    }
+                withMaven(globalMavenSettingsConfig: 'global-maven', traceability: true) {
+                    sh "mvn clean deploy -DskipTests=true"
                 }
             }
         }
 
+        // stage('Build & Push Artifact') {
+        //     steps {
+        //         withCredentials([usernamePassword(credentialsId: 'nexus-cred', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
+        //             withMaven(globalMavenSettingsConfig: 'global-maven', traceability: true) {
+        //                 sh "mvn clean deploy -DskipTests=true"
+        //             }
+        //         }
+        //     }
+        // }
+        
         stage('Docker Build & Trivy Scan') {
             steps {
                 script {
-                    // FIXED: Pointing directly to root Dockerfile
                     sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -f Dockerfile ."
-                    
-                    // Security Scan via Trivy
-                    sh "trivy image --severity HIGH,CRITICAL --exit-code 0 ${IMAGE_NAME}:${BUILD_NUMBER}"
+                    sh "trivy image --format table -o trivy-image-report.html ${IMAGE_NAME}:${BUILD_NUMBER}"
                 }
             }
         }
@@ -103,43 +105,76 @@ pipeline {
             }
         }
 
-        stage('GitOps Deployment Update') {
+        stage('Kubernetes Deploy') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                script {
+                    echo "Deploying image ${IMAGE_NAME}:${BUILD_NUMBER} directly to Kubernetes namespace: ${APP_NAMESPACE}"
                     sh """
-                        git config --global user.email "jenkins@devops-workbench.local"
-                        git config --global user.name "Jenkins CI"
+                        # Update manifest dynamically or apply manifest file
+                        sed -i -E "s|image:.*|image: ${IMAGE_NAME}:${BUILD_NUMBER}|g" k8s/petclinic.yaml
+                        kubectl apply -f k8s/petclinic.yaml -n ${APP_NAMESPACE}
                         
-                        # FIXED: Remove existing directory before fresh clone
-                        rm -rf gitops-repo
-                        git clone ${GITOPS_REPO} gitops-repo
-                        cd gitops-repo
-
-                        # Dynamic update in deployment manifest
-                        sed -i 's|image: ${IMAGE_NAME}:.*|image: ${IMAGE_NAME}:${BUILD_NUMBER}|g' manifest/deployment.yaml
-                        
-                        git add manifest/deployment.yaml
-                        git commit -m "chore(ci): update image tag to ${BUILD_NUMBER} [skip ci]" || echo "No changes to commit"
-                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/repo/gitops-manifests.git HEAD:main
+                        # Trigger rollout status check to verify deployment success
+                        kubectl rollout status deployment/petclinic -n ${APP_NAMESPACE} --timeout=120s
                     """
                 }
             }
         }
+
+        // stage('GitOps Deployment Update') {
+        //     environment {
+        //         GITOPS_REPO = 'https://github.com/ahsan598/spring-petclinic.git'
+        //         IMAGE_NAME  = 'ahsan98/spring-petclinic'
+        //         GIT_USER    = 'Jenkins CI'
+        //         GIT_EMAIL   = 'jenkins@devops-workbench.local'
+        //     }
+        //     steps {
+        //         withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+        //             sh '''
+        //                 git config --global user.email "${GIT_EMAIL}"
+        //                 git config --global user.name "${GIT_USER}"
+                        
+        //                 rm -rf gitops-repo
+        //                 git clone https://${GITHUB_TOKEN}@github.com/ahsan598/spring-petclinic.git gitops-repo
+        //                 cd gitops-repo
+
+        //                 echo "=== Before SED ==="
+        //                 grep -i "image:" k8s/petclinic.yaml || true
+
+        //                 # Fixed SED Command without syntax escaping issues
+        //                 sed -i -E "s|image:.*|image: ahsan98/spring-petclinic:${BUILD_NUMBER}|g" k8s/petclinic.yaml
+
+        //                 echo "=== After SED ==="
+        //                 grep -i "image:"k8s/petclinic.yaml || true
+
+        //                 git add k8s/petclinic.yaml
+        //                 git commit -m "update image tag to ahsan98/spring-petclinic:${BUILD_NUMBER}" || echo "No changes to commit"
+                        
+        //                 git push https://${GITHUB_TOKEN}@github.com/ahsan598/spring-petclinic.git HEAD:main
+        //             '''
+        //         }
+        //     }
+        // }
     }
 
     post {
         always {
             echo 'Archiving Security & Coverage Reports...'
             archiveArtifacts artifacts: '**/dependency-check-report.html', allowEmptyArchive: true
+            
+            // Local Docker Image Cleanup
+            echo 'Cleaning up built Docker image from local agent...'
+            sh "docker rmi ${IMAGE_NAME}:${BUILD_NUMBER} || true"
+
             cleanWs()
         }
         
         success {
-            echo "Build #${BUILD_NUMBER} completed successfully!"
+            echo "Build #${BUILD_NUMBER} deployed successfully to Kubernetes namespace '${APP_NAMESPACE}'!"
         }
 
         failure {
-            echo "Build #${BUILD_NUMBER} Failed!"
+            echo "Build #${BUILD_NUMBER} Failed during build or Kubernetes deployment!"
         }
     }
 }

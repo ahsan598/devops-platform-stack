@@ -1,152 +1,199 @@
+# ==============================================================================
+# Docker Compose Configuration for DevOps Platform Stack
+# This configuration sets up a CI/CD environment with Jenkins, SonarQube, Nexus, and PostgreSQL,
+# along with the necessary networks and volumes for persistent data storage.
+# ==============================================================================
+
 services:
 
-  # ==========================================
-  # Jenkins
-  # ==========================================
+  # ============================================================================
+  # Jenkins CI/CD Server
+  # ============================================================================
   jenkins:
     build:
       context: .
       dockerfile: Dockerfile
-
-    image: devops-jenkins:1.0
+    image: 'devops-jenkins:1.0'
     container_name: jenkins
     restart: unless-stopped
 
+    # Port mapping for Jenkins web UI and agent communication
     ports:
-      - "8080:8080"
-      - "50000:50000"
+      - '8080:8080'
+      - '50000:50000'
 
-    # Set the GID of the Docker group on the host machine to allow Jenkins to access the Docker daemon
+    # DNS servers for Jenkins container to resolve external domains
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+
+    # Add the host's Docker group GID to allow Jenkins to access the Docker daemon
     group_add:
-    - "${DOCKER_GID}"
+      - '${DOCKER_GID}'
 
+    # Heap size configuration for Jenkins to optimize memory usage and prevent out-of-memory errors during builds
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx2048m
+
+    #  Memory optimization and resource limits to prevent Jenkins from consuming excessive host resources
+    deploy:
+      resources:
+        limits:
+          memory: 3000M
+        reservations:
+          memory: 1024M
+
+    # Persistent volumes for Jenkins home directory, Docker socket, and Kubernetes config
     volumes:
-      - jenkins_data:/var/jenkins_home
+      - 'jenkins_data:/var/jenkins_home'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - './jenkins-kubeconfig:/var/jenkins_home/.kube/config:ro'
 
-      # Mount the Docker socket to allow Jenkins to communicate with the Docker daemon on the host machine
-      - /var/run/docker.sock:/var/run/docker.sock
-
-      # Mount the kubeconfig file to allow Jenkins to access the Kubernetes cluster
-      - ./jenkins-kubeconfig:/var/jenkins_home/.kube/config:ro
-
+    # Connect Jenkins to both the public-facing CI/CD network and the internal Kubernetes Kind network
     networks:
       - cicd_network
       - kind
 
     # Add extra_hosts to allow Jenkins to resolve host.docker.internal to the host machine's gateway
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
 
-
-  # ==========================================
-  # SonarQube
-  # ==========================================
+  # ============================================================================
+  # SonarQube Code Quality and Security Analysis Server
+  # Note: SonarQube is connected to both 'cicd_network' (for Jenkins access) and 'db_network' (for PostgreSQL DB access)
+  # ============================================================================
   sonarqube:
-    image: sonarqube:community
+    image: 'sonarqube:community'
     container_name: sonarqube
     restart: unless-stopped
 
+    # Port mapping for SonarQube web UI
     ports:
-      - "9000:9000"
+      - '9000:9000'
 
     # Set the JDBC connection details for SonarQube to connect to the PostgreSQL database
     environment:
-      SONAR_JDBC_URL: jdbc:postgresql://sonarqube_db:5432/sonarqube
-      SONAR_JDBC_USERNAME: sonar
-      SONAR_JDBC_PASSWORD: sonarpass
+      SONAR_JDBC_URL: 'jdbc:postgresql://sonarqube_db:5432/${POSTGRES_DB:-sonarqube}'
+      SONAR_JDBC_USERNAME: '${POSTGRES_USER:-sonar}'
+      SONAR_JDBC_PASSWORD: '${POSTGRES_PASSWORD:-sonarpass}'
 
+    # Persistent volumes for SonarQube data, extensions, and logs to retain analysis history and plugin configurations
     volumes:
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_extensions:/opt/sonarqube/extensions
-      - sonarqube_logs:/opt/sonarqube/logs
+      - 'sonarqube_data:/opt/sonarqube/data'
+      - 'sonarqube_extensions:/opt/sonarqube/extensions'
+      - 'sonarqube_logs:/opt/sonarqube/logs'
 
+    # Provides a health check to ensure that the SonarQube service only starts after the PostgreSQL database is ready
     depends_on:
       sonarqube_db:
         condition: service_healthy
 
-    networks:
-      - cicd_network
-
+    # Mandatory OS limits required by ElasticSearch embedded in SonarQube
     ulimits:
       nofile:
         soft: 65536
         hard: 65536
 
+    # Memory optimization and resource limits to prevent SonarQube from consuming excessive host resources
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
 
-  # ==========================================
+    # Connect SonarQube to both the public-facing CI/CD network and the internal database network for secure communication with PostgreSQL
+    networks:
+      - cicd_network
+      - db_network
+
+  # ======================================================================================================
   # SonarQube Database (PostgreSQL)
-  # ==========================================
+  # Note: The PostgreSQL database is isolated on the internal 'db_network' to prevent external access and enhance security. It is only accessible by SonarQube.
+  # ======================================================================================================
   sonarqube_db:
-    image: postgres:17-alpine
+    image: 'postgres:17-alpine'
     container_name: sonarqube_db
     restart: unless-stopped
 
+    # environment variables for PostgreSQL database configuration, allowing for customization via .env file or default values
     environment:
-      POSTGRES_USER: sonar
-      POSTGRES_PASSWORD: sonarpass
-      POSTGRES_DB: sonarqube
+      POSTGRES_USER: '${POSTGRES_USER:-sonar}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-sonarpass}'
+      POSTGRES_DB: '${POSTGRES_DB:-sonarqube}'
 
+    # Persistent volume for PostgreSQL data to ensure that database contents are retained across container restarts
     volumes:
-      - sonarqube_db_data:/var/lib/postgresql/data
+      - 'sonarqube_db_data:/var/lib/postgresql/data'
 
+	# Connect the PostgreSQL database to the internal 'db_network' to isolate it from external access and allow secure communication with SonarQube
     networks:
-      - cicd_network
+      - db_network
 
+    # Health check configuration to ensure that the PostgreSQL database is ready before SonarQube attempts to connect, preventing connection errors during startup
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sonar -d sonarqube"]
+      test:
+        - CMD-SHELL
+        - 'pg_isready -U ${POSTGRES_USER:-sonar} -d ${POSTGRES_DB:-sonarqube}'
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
 
-
-  # ==========================================
-  # Nexus Repository
-  # ==========================================
+  # ============================================================================
+  # Nexus Repository Manager
+  # Note: Nexus is connected to the public-facing 'cicd_network' to allow access from Jenkins and other CI/CD tools.
+  # ============================================================================
   nexus:
-    image: sonatype/nexus3:3.87.2
+    image: 'sonatype/nexus3:3.87.2'
     container_name: nexus
     restart: unless-stopped
 
+    # Port mapping for Nexus web UI
     ports:
-      - "8081:8081"
+      - '8081:8081'
 
+    # Persistent volume for Nexus data to retain repository contents and configuration across container restarts
     volumes:
-      - nexus_data:/nexus-data
+      - 'nexus_data:/nexus-data'
 
+    # Connect Nexus to the public-facing 'cicd_network' to allow access from Jenkins and other CI/CD tools
     networks:
       - cicd_network
 
+    # Memory optimization resource limits to prevent Nexus from consuming excessive host resources
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+        reservations:
+          memory: 2048M
 
-# ==========================================
+# ================================================================================================
 # Persistent Volumes
-# ==========================================
+# Note: These volumes are used to persist data for Jenkins, SonarQube, PostgreSQL database, and Nexus across container restarts and updates.
+# ================================================================================================
 volumes:
-
   jenkins_data:
     name: jenkins_data
-
   sonarqube_data:
     name: sonarqube_data
-
   sonarqube_extensions:
     name: sonarqube_extensions
-
   sonarqube_logs:
     name: sonarqube_logs
-
   sonarqube_db_data:
     name: sonarqube_db_data
-
   nexus_data:
     name: nexus_data
 
-
-# ==========================================
-# Network
-# ==========================================
+# ==============================================================================
+# Networks
+# Note: The 'cicd_network' is a shared external network for CI/CD app-to-app interaction,
+# while the 'db_network' is an internal isolated network for SonarQube and PostgreSQL DB communication.
+# ==============================================================================
 networks:
   cicd_network:
-       external: true
-
+    external: true
   kind:
     external: true
+  db_network:
+    driver: bridge
+    internal: true

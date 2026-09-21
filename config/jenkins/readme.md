@@ -33,13 +33,20 @@ SonarQube's default embedded **H2 database** is not intended for production usag
 
 ### 💾 Persistent Volumes
 Persistent volumes prevent data loss when containers are stopped or recreated:
-  - `jenkins_data`: Stores Jenkins configurations, build logs, and installed plugins.
-  - `sonarqube_data`, `sonarqube_extensions`, `sonarqube_logs`: Keeps SonarQube plugins, dynamic data, and system logs safe.
-  - `sonarqube_db_data`: Preserves PostgreSQL databases and project code analysis metrics.
-  - `nexus_data`: Retains hosted artifacts, raw repositories, and private Docker registries.
+  - **`jenkins_data`:** Stores Jenkins configurations, build logs, and installed plugins.
+  - **`sonarqube_data`, `sonarqube_extensions`, `sonarqube_logs`:** Keeps SonarQube plugins, dynamic data, and system logs safe.
+  - **`sonarqube_db_data`:** Preserves PostgreSQL databases and project code analysis metrics.
+  - **`nexus_data`:** Retains hosted artifacts, raw repositories, and private Docker registries.
+
+### 🌐 Docker Networks
+Isolated networks are used to route traffic securely between services and prevent unintended inter-container access:
+- **`cicd_network`:** Main network facilitating communication between Jenkins, SonarQube, Nexus, and related tools.
+- **`db_network`:** Isolated network reserved for internal database-to-application traffic.
+- **`kind`:** External/Custom bridge network connecting local Kubernetes (Kind) nodes to the CI/CD ecosystem.
+
 
 ### 🗺️ Recommended Stack Setup Order
-1. Create External Networks (`docker network create cicd_network kind`)
+1. Create Networks (`cicd_network` `kind` `db_network`)
 2. Create Kind Cluster (`kind create cluster --name dev-cluster --config kind-config.yaml`)
 3. Extract Host Docker GID & Patch Kubeconfig (`.env` & `jenkins-kubeconfig`)
 4. Build Jenkins Image & Deploy Stack (`docker compose up -d --build`)
@@ -48,7 +55,7 @@ Persistent volumes prevent data loss when containers are stopped or recreated:
 ---
 
 ### ⚡ Quick Start
-1. Create required external Docker networks:
+1. Create required Docker networks:
    ```sh
    # Navigate to the Jenkins configuration directory
    cd devops-platform-stack/config/jenkins
@@ -56,10 +63,11 @@ Persistent volumes prevent data loss when containers are stopped or recreated:
    # create docker networks
    docker network create cicd_network
    docker network create kind
+   docker network create db_network
    ```
 2. Set the host Docker GID in your `.env` file:
    ```sh
-   echo "DOCKER_GID=$(getent group docker | cut -d: -f3)" > .env
+   echo "DOCKER_GID=$(getent group docker | cut -d: -f3)" >> .env
    ```
 
 ### ⚙️ Jenkins to Kind Kubernetes Integration
@@ -93,9 +101,16 @@ Edit `./jenkins-kubeconfig` and change the cluster server address:
   ```
 
 ### 📦 Build Custom Image
-Build the custom Jenkins image and launch all containers in the background
+Build the custom Jenkins image and launch all containers
   ```sh
+  # Build the custom Jenkins image and start all containers in detached mode
   docker compose up -d --build
+
+  # Restart all running containers in the setup
+  docker compose restart
+
+  # Recreate a specific container (e.g., jenkins) after modifying its configuration
+  docker compose up -d --force-recreate <service-name>
   ```
   ![build-image](/assets/jenkins/jenkins-image.jpg)
 

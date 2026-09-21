@@ -47,6 +47,18 @@ A declarative GitOps continuous delivery setup deployed on Kubernetes. Features 
      -o jsonpath="{.data.password}" | base64 -d; echo
    ```
 
+> [!NOTE]
+> If you hit token issues or state errors (common in Kind/local clusters), reset ArgoCD:
+> ```sh
+>  # 1. Gracefully restart controllers
+>  kubectl rollout restart statefulset argocd-application-controller -n argocd
+>  kubectl rollout restart deployment argocd-server -n argocd
+>  # 2. Force re-issue tokens by recreating pods
+>  kubectl delete pods --all -n argocd
+>  # 3. Monitor pod status until all are running
+>  kubectl get pods -n argocd -w
+> ```
+
 ### 🧪 Test by implementing a demo app via ArgoCD
 1. Deploy Nginx demo application to ArgoCD
    ```sh
