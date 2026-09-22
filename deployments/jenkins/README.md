@@ -98,18 +98,18 @@ Follow these steps to trigger Jenkins builds automatically whenever code is push
 > [!NOTE]
 > Since Jenkins is running inside a Docker container on localhost, GitHub cannot reach `http://localhost:8080`.
 > 
-> Expose your local container port using a tool like [ngrok](https://ngrok.com/) (`ngrok http 8080`) to get a public URL (e.g., `https://xxxx.ngrok-free.app`).
+> Expose your local container port using a tool like [**ngrok**](https://ngrok.com/) (`ngrok http 8080`) to get a public URL (e.g., `https://xxxx.ngrok-free.app`).
 >
->  install ngrok: `sudo snap install -y ngrok` & verify `ngrok --version`.
+>  **Install ngrok:** `sudo snap install -y ngrok` & verify `ngrok --version`.
 
-**Step 1:** Configure Jenkins Job
+**Step 1: Configure Jenkins Job**
 - Go to your Jenkins Dashboard and open your **Pipeline Job**.
 - Click **Configure**.
 - Under the Build Triggers section, check:
   - `GitHub hook trigger for GITScm polling`
 - Click **Save**.
 
-**Step 2:** Configure Webhook in GitHub
+**Step 2: Configure Webhook in GitHub**
 - Open your repository on **GitHub → Go to Settings → Webhooks**.
 - Click **Add webhook**.
 - Fill in the following details:

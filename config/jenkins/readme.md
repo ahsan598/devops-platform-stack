@@ -44,15 +44,15 @@ Isolated networks are used to route traffic securely between services and preven
 - **`db_network`:** Isolated network reserved for internal database-to-application traffic.
 - **`kind`:** External/Custom bridge network connecting local Kubernetes (Kind) nodes to the CI/CD ecosystem.
 
-
-### 🗺️ Recommended Stack Setup Order
-1. Create Networks (`cicd_network` `kind` `db_network`)
-2. Create Kind Cluster (`kind create cluster --name dev-cluster --config kind-config.yaml`)
-3. Extract Host Docker GID & Patch Kubeconfig (`.env` & `jenkins-kubeconfig`)
-4. Build Jenkins Image & Deploy Stack (`docker compose up -d --build`)
-5. Verify Integrations (`kubectl get nodes` inside Jenkins)
-
 ---
+
+>[!IMPORTANT]
+> ### 🗺️ Recommended Stack Setup Order
+> 1. Create Networks (`cicd_network` `kind` `db_network`)
+> 2. Create Kind Cluster (`kind create cluster --name dev-cluster --config kind-config.yaml`)
+> 3. Extract Host Docker GID & Patch Kubeconfig (`.env` & `jenkins-kubeconfig`)
+> 4. Build Jenkins Image & Deploy Stack (`docker compose up -d --build`)
+> 5. Verify Integrations (`kubectl get nodes` inside Jenkins)
 
 ### ⚡ Quick Start
 1. Create required Docker networks:
