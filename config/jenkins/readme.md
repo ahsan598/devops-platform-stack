@@ -47,7 +47,7 @@ Isolated networks are used to route traffic securely between services and preven
 ---
 
 >[!IMPORTANT]
-> ### 🗺️ Recommended Stack Setup Order
+> ### Recommended Stack Setup Order
 > 1. Create Networks (`cicd_network` `kind` `db_network`)
 > 2. Create Kind Cluster (`kind create cluster --name dev-cluster --config kind-config.yaml`)
 > 3. Extract Host Docker GID & Patch Kubeconfig (`.env` & `jenkins-kubeconfig`)
