@@ -15,7 +15,7 @@ This repository serves as a central blueprint, organizing installation, configur
 devops-platform-stack/
 ├── assets/					# Images and other visual assets
 ├── config/					# Configuration files for platform tools and services
-├── examples/			# Reference configurations and usage templates
+├── examples/			    # Reference configurations and usage templates
 ├── docs/					# Setup guides, prerequisites, and verification steps
 ├── scripts/				# Installation, automation, maintenance, and cleanup scripts
 ├── .gitignore				# Git ignore rules
@@ -64,25 +64,31 @@ devops-platform-stack/
 ## ⚡ Quick Start
 
 ### 1. Prerequisites
-- Ensure your local machine meets all hardware requirements before starting the lab:
+- Clone the repository and inspect the prerequisite checklist:
   ```sh
   # Clone the repository
   git clone https://github.com/ahsan598/devops-platform-stack.git
 
   cd devops-platform-stack/
-
-  # View the prerequisites document in the terminal
-  cat docs/01-prerequisites.md
   ```
-
-### 2. Inspect Verified Tool Matrix
 - Check all pinned versions across runtimes, container engines, and observability stacks verified for this stack:
   ```sh
   # View all pinned versions
   cat docs/00-tools-version.md
   ```
+- Ensure Windows Subsystem for Linux (WSL) is enabled on your machine. If not, refer to the detailed WSL setup guide:
+  ```sh
+  # View the WSL installation and setup guide
+  cat docs/01-wsl-setup.md
+  ```
+- Ensure your local machine meets all hardware requirements before starting the lab:
+  ```sh
+  # View the requirements document in the terminal
+  cat docs/02-hardware-requirements.md
+  ```
 
-### 3. DevOps Tool Setup
+
+### 2. DevOps Tool Setup
 1. The `scripts/` contains installation or cleanup scripts for required tools and packages.
    ```sh
    # Navigate to installation scripts
@@ -106,11 +112,11 @@ devops-platform-stack/
    # Navigate to Observability configuration
    cd config/observability/
    ```
-3. The `deployments/` contains the deployment configuartion for each tools
+3. The `examples/` contains the sample configuartion for each tools
    ```sh
-   # Navigate to Jenkins deployment
-   cd deployments/jenkins/
+   # Navigate to Jenkins example
+   cd examples/jenkins/
 
-   # Navigate to Kubernetes deployment
-   cd deployments/kubernetes/
+   # Navigate to Kubernetes example
+   cd examples/kubernetes/
    ```
