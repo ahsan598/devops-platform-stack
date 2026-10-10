@@ -23,28 +23,27 @@ chmod +x scripts/install/*.sh
 **04-container-tools.sh**
 ![container-tools](/assets/scripts/container-tools.jpg)
 
-### 📋 Note
-- Tool versions are explicitly pinned where applicable to ensure reproducible environments.
-- **OS-Dependent Package Strings:** Certain package version strings depend directly on your Linux release/codename. For example, Docker package pinning varies by OS version.
-  - Ubuntu 24.04 Noble:
-    ```sh
-    DOCKER_VERSION="5:27.5.1-1~ubuntu.24.04~noble"
-    ```
-  - Ubuntu 22.04 Jammy:
-    ```sh
-    DOCKER_VERSION="5:27.5.1-1~ubuntu.22.04~jammy"
-    ```
-  - To find the Docker package version available for your specific OS refer [Official Docker Repository](https://download.docker.com/linux/ubuntu).
-    ```sh
-    # check currently installed and candidate versions for installation
-    apt-cache policy docker-ce
+> [!NOTE]
+> - Tool versions are explicitly pinned where applicable to ensure reproducible environments.
+> - **OS-Dependent Package Strings:** Certain package version strings depend directly on your Linux release/codename. To find the Docker package version available for your specific OS refer [Official Docker Repository](https://download.docker.com/linux/ubuntu).
+>  - For example, Docker package pinning varies by OS version.
+>    ```sh
+>    # Ubuntu 24.04 Noble:
+>    DOCKER_VERSION="5:27.5.1-1~ubuntu.24.04~noble"
+>
+>    # Ubuntu 22.04 Jammy:
+>     DOCKER_VERSION="5:27.5.1-1~ubuntu.22.04~jammy"
+>
+>    # check currently installed and candidate versions for installation
+>    apt-cache policy docker-ce
+>
+>    # list all available exact version strings for your Ubuntu release
+>    apt-cache madison docker-ce
+>    ```
+>  - Use the exact version string from `apt-cache madison` or shown under Candidate in `apt-cache policy` when pinning the package.
 
-    # list all available exact version strings for your Ubuntu release
-    apt-cache madison docker-ce
-    ```
-  - Use the exact version string from `apt-cache madison` or shown under Candidate in `apt-cache policy` when pinning the package.
-
-- After running `04-container-tools.sh`, refresh your group membership by running `newgrp docker` (or restart your terminal) to run Docker without `sudo`.
+> [!IMPORTANT]
+> - After running `04-container-tools.sh`, refresh your group membership by running `newgrp docker` (or restart your terminal) to run Docker without `sudo`.
 
 ## 🔒 Lock Tool Versions (Prevent Auto-Upgrades)
 To prevent package managers from accidentally upgrading production-critical binaries during routine `apt upgrade` runs:

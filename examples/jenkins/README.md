@@ -75,7 +75,8 @@ Configure SonarQube to send Quality Gate status updates back to Jenkins:
 ### 5. Kubernetes Setup & Database Prerequisites
 If your project requires cluster secrets or namespaces, create them beforehand using `kubectl`.
 
-**Note:** The example below uses a **PostgreSQL** setup for a sample application (`spring-petclinic`). Update the namespace, secret names, host, and credentials according to your specific project's requirements.
+>[!NOTE]
+>The example below uses a **PostgreSQL** setup for a sample application [spring-petclinic](https://github.com/spring-projects/spring-petclinic). Update the namespace, secret names, host, and credentials according to your specific project's requirements.
 ```sh
 # 1. Create target namespace (replace 'webapps' with your namespace)
 kubectl create ns webapps
@@ -118,3 +119,18 @@ Follow these steps to trigger Jenkins builds automatically whenever code is push
   - **Secret:** Leave blank (or enter a secret if configured in Jenkins).
   - Which events would you like to trigger **this webhook?** Select Just the push event.
 - Click **Add webhook**.
+
+---
+
+### Jenkins Pipeline – Key Improvements
+
+- **Test Execution:** Remove `-DskipTests=true` and run `mvn clean verify` to execute tests and validate the build.
+- **JUnit Reports:** Publish test reports and fail the build if expected test results are missing.
+- **SonarQube Analysis:** Ensure compiled classes and test reports are available, and configure the Quality Gate webhook correctly.
+- **Quality Gate:** Fail the pipeline when the SonarQube Quality Gate fails; set a realistic timeout.
+- **OWASP Dependency-Check:** Configure vulnerability thresholds, maintain an updated vulnerability database, and enforce security policies.
+- **Trivy Image Scan:** Use the correct report format and fail the build for policy-defined HIGH/CRITICAL vulnerabilities.
+- **Artifact & Image Publishing:** Configure Maven repository credentials securely and push Docker images only after security checks pass.
+- **Security Reports:** Archive OWASP and Trivy reports for auditing and future troubleshooting.
+- **Kubernetes Deployment:** Update only the intended container image, verify namespace/RBAC configuration, and check rollout status.
+- **Pipeline Reliability:** Review build timeouts, retain useful build artifacts, and clean up the workspace and local Docker images safely.
