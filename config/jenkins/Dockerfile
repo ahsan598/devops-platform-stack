@@ -1,4 +1,4 @@
-# Base image on Jenkins LTS tracking Java 21 (Debian 12 / Bookworm)
+# Base image on Jenkins LTS tracking Java 21 (Debian 12 Bookworm)
 FROM jenkins/jenkins:lts-jdk21
 
 # Elevate to root user to install additional tools

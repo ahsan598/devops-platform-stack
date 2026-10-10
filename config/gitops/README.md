@@ -100,7 +100,7 @@ A declarative GitOps continuous delivery setup deployed on Kubernetes. Features 
 
 ---
 
-# 🛠️ GitOps CLI Operations (Optional)
+### 🛠️ GitOps CLI Operations (Optional)
 While Argo CD operates declaratively via Git commits and the Web UI, the **Argo CD CLI** is useful for scripting, manual triggers, and integrating with CI/CD runners (e.g., Jenkins, GitHub Actions).
 
 1. CI/CD Server Authentication & Login
