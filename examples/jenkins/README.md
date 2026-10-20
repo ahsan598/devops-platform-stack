@@ -8,9 +8,11 @@ Configure a Jenkins pipeline using a repository `Jenkinsfile` to run your comple
 2. Enter a job name (e.g., `app-ci-pipeline`), select **Pipeline**, and click **OK**.
 3. Under the **Pipeline** section:
    - **Definition:** Choose **Pipeline script from SCM** (Recommended) or **Pipeline script**.
-    - If using **Pipeline** script, paste your [Jenkinsfile](./jenkinsfile).
+    - If using **Pipeline** script, paste your Jenkinsfile.
 4. Click **Save**.
 
+> [!TIP]
+>  Check the [Jenkins Pipeline Syntax Guide](https://www.jenkins.io/doc/book/pipeline/syntax/) when writing your pipeline scripts.
 
 ### 2. SonarQube Maven Integration
 Choose one of the following options:

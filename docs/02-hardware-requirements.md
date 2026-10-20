@@ -32,7 +32,7 @@ localhostForwarding=true
 ```
 
 ### 4. Control group v2 (`cgroup v2`) Configuration
-Kubernetes **v1.36+** (e.g., `v1.36.4`) requires **cgroup v2** for proper resource accounting, cgroup limits, and systemd init driver compatibility inside Kind node containers.
+Kubernetes **v1.36+** (e.g., `v1.36.4`) requires **cgroup v2** for proper resource accounting, cgroup limits, and systemd init driver compatibility inside KIND node containers.
 
 - **Native Linux / EC2 (Ubuntu 22.04 / 24.04 LTS):** `cgroup v2` is enabled by default out of the box. No kernel parameters or host changes are required.
 - **Enable cgroup v2 in WSL2:** WSL2 custom kernels may still fall back to `cgroup v1`. You must explicitly force `cgroup v2`.

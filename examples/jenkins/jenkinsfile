@@ -1,31 +1,55 @@
 pipeline {
     agent any
 
+    // Define the required tools for the pipeline
     tools {
         jdk 'jdk21'
         maven 'maven3'
     }
 
+    // Define environment variables for the pipeline
     environment {
-        IMAGE_NAME   = 'ahsan98/spring-petclinic'
-        // GITOPS_REPO   = 'https://github.com/ahsan598/spring-petclinic.git'
-        APP_NAMESPACE = 'webapps'
+
+        // Application & Git Configuration
+        APP_NAME         = 'your-app-name'
+        GIT_URL          = 'https://github.com/your-org/your-repo-name.git'
+        GIT_BRANCH       = 'main'
+        GIT_CREDENTIAL_ID = 'github-token'
+
+        // Container Registry & Kubernetes Configuration
+        IMAGE_NAME       = 'your_dockerhub_username/your-app-name'
+        APP_NAMESPACE    = 'your-app-namespace'
+        K8S_MANIFEST     = 'k8s/deployment.yaml'
+        K8S_CREDENTIAL_ID = 'k8s-cred'
+        K8S_SERVER_URL   = 'https://<your-cluster-ip>:6443'
+        
+        // Tools & Plugin Configuration
+        SONAR_SERVER     = 'sonar-server'
+        MAVEN_SETTINGS   = 'global-maven'
+        DOCKER_CRED_ID   = 'docker-cred'
+        DEPENDENCY_CHECK = 'DP-Check'
     }
 
+    // Define options for the pipeline
     options {
-        timeout(time: 15, unit: 'MINUTES')
+        timeout(time: 10, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '5'))
         disableConcurrentBuilds()
     }
 
+    // Define the stages of the pipeline
     stages {
-        stage('Checkout Source') { 
+
+        // 1. Checkout Source Code from Git Repository
+        stage('Git Checkout') { 
             steps {
-                cleanWs()
-                git branch: 'main', url: 'https://github.com/ahsan598/spring-petclinic.git'
+                git branch: "${env.GIT_BRANCH}", 
+                    url: "${env.GIT_URL}",
+                    credentialsId: "${env.GIT_CREDENTIAL_ID}"
             }
         }
 
+        // 2.  Code Compilation & Unit Testing (Skipping Tests for Faster Build)
         stage('Code Compile & Test') {
             steps {
                 sh "mvn clean test -DskipTests=true"
@@ -37,142 +61,142 @@ pipeline {
             }
         }
 
+        // 3. Static Code Analysis with SonarQube
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonar-server') {
-                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar'
+                withSonarQubeEnv("${env.SONAR_SERVER}") {
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
 
+        // if you want to use the Sonar Maven plugin directly, you can replace the above
         // stage('SonarQube Analysis') {
         //     steps {
-        //         withSonarQubeEnv('sonar-server') {
-        //             sh 'mvn sonar:sonar'
+        //         withSonarQubeEnv("${env.SONAR_SERVER}") {
+        //             sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar'
         //         }
         //     }
         // }
 
+        // 4. Quality Gate Check (Fail the Build if Quality Gate Fails)
         stage('Quality Gate') {
             steps {
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
         }
 
+        // 5. OWASP Dependency Check for Vulnerability Scanning
         stage('OWASP Dependency Check') {
             steps {
                 dependencyCheck additionalArguments: '--scan ./ --format HTML --out dependency-check-report.html --noupdate', 
-                                odcInstallation: 'DP-Check'
+                                odcInstallation: "${env.DEPENDENCY_CHECK}"
             }
         }
 
-        stage('Build & Push Artifact') {
+        // 6. Build Package Artifact (.jar / .war)
+        stage('Build Artifact') {
             steps {
-                withMaven(globalMavenSettingsConfig: 'global-maven', traceability: true) {
+                sh "mvn package -DskipTests=true"
+            }
+        }
+
+        // 7. Publish Artifact to Repository (e.g., Nexus / Artifactory)
+        stage('Publish Artifact') {
+            steps {
+                withMaven(globalMavenSettingsConfig: "${env.MAVEN_SETTINGS}", traceability: true) {
                     sh "mvn clean deploy -DskipTests=true"
                 }
             }
         }
 
+        // If you want to use credentials for publishing to Nexus, you can uncomment the following stage
         // stage('Build & Push Artifact') {
         //     steps {
         //         withCredentials([usernamePassword(credentialsId: 'nexus-cred', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
-        //             withMaven(globalMavenSettingsConfig: 'global-maven', traceability: true) {
+        //             withMaven(globalMavenSettingsConfig: "${env.MAVEN_SETTINGS}", traceability: true) {
         //                 sh "mvn clean deploy -DskipTests=true"
         //             }
         //         }
         //     }
         // }
-        
-        stage('Docker Build & Trivy Scan') {
+
+        // 8. Containerization & Vulnerability Scanning (Docker & Trivy)
+        stage('Docker Build & Scan') {
             steps {
                 script {
-                    sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -f Dockerfile ."
-                    sh "trivy image --format table -o trivy-image-report.html ${IMAGE_NAME}:${BUILD_NUMBER}"
+                    sh "docker build -t ${env.IMAGE_NAME}:${BUILD_NUMBER} -f Dockerfile ."
+                    sh "trivy image --format table -o trivy-image-report.html ${env.IMAGE_NAME}:${BUILD_NUMBER}"
                 }
             }
         }
 
+        // 9. Push Docker Image to Container Registry (e.g., DockerHub / ECR / GCR)
         stage('Push Image to Registry') {
             steps {
                 script {
-                    withDockerRegistry(credentialsId: 'docker-cred') {
-                        sh "docker push ${IMAGE_NAME}:${BUILD_NUMBER}"
+                    withDockerRegistry(credentialsId: "${env.DOCKER_CRED_ID}") {
+                        sh "docker push ${env.IMAGE_NAME}:${BUILD_NUMBER}"
                     }
                 }
             }
         }
 
+        // 10. Kubernetes Deployment (Dynamic Image Tag Update in Manifest)
         stage('Kubernetes Deploy') {
             steps {
                 script {
-                    echo "Deploying image ${IMAGE_NAME}:${BUILD_NUMBER} directly to Kubernetes namespace: ${APP_NAMESPACE}"
+                    echo "Deploying image ${env.IMAGE_NAME}:${BUILD_NUMBER} to namespace: ${env.APP_NAMESPACE}"
                     sh """
-                        # Update manifest dynamically or apply manifest file
-                        sed -i -E "s|image:.*|image: ${IMAGE_NAME}:${BUILD_NUMBER}|g" k8s/petclinic.yaml
-                        kubectl apply -f k8s/petclinic.yaml -n ${APP_NAMESPACE}
+                        # Dynamically update the image tag in the deployment manifest
+                        sed -i -E "s|image:.*|image: ${env.IMAGE_NAME}:${BUILD_NUMBER}|g" ${env.K8S_MANIFEST}
                         
-                        # Trigger rollout status check to verify deployment success
-                        kubectl rollout status deployment/petclinic -n ${APP_NAMESPACE} --timeout=120s
+                        # Apply Kubernetes configuration
+                        kubectl apply -f ${env.K8S_MANIFEST} -n ${env.APP_NAMESPACE}
+                        
+                        # Verify deployment rollout success
+                        kubectl rollout status deployment/${env.APP_NAME} -n ${env.APP_NAMESPACE} --timeout=120s
                     """
                 }
             }
         }
 
-        // stage('GitOps Deployment Update') {
-        //     environment {
-        //         GITOPS_REPO = 'https://github.com/ahsan598/spring-petclinic.git'
-        //         IMAGE_NAME  = 'ahsan98/spring-petclinic'
-        //         GIT_USER    = 'Jenkins CI'
-        //         GIT_EMAIL   = 'jenkins@devops-workbench.local'
-        //     }
-        //     steps {
-        //         withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-        //             sh '''
-        //                 git config --global user.email "${GIT_EMAIL}"
-        //                 git config --global user.name "${GIT_USER}"
-                        
-        //                 rm -rf gitops-repo
-        //                 git clone https://${GITHUB_TOKEN}@github.com/ahsan598/spring-petclinic.git gitops-repo
-        //                 cd gitops-repo
-
-        //                 echo "=== Before SED ==="
-        //                 grep -i "image:" k8s/petclinic.yaml || true
-
-        //                 # Fixed SED Command without syntax escaping issues
-        //                 sed -i -E "s|image:.*|image: ahsan98/spring-petclinic:${BUILD_NUMBER}|g" k8s/petclinic.yaml
-
-        //                 echo "=== After SED ==="
-        //                 grep -i "image:"k8s/petclinic.yaml || true
-
-        //                 git add k8s/petclinic.yaml
-        //                 git commit -m "update image tag to ahsan98/spring-petclinic:${BUILD_NUMBER}" || echo "No changes to commit"
-                        
-        //                 git push https://${GITHUB_TOKEN}@github.com/ahsan598/spring-petclinic.git HEAD:main
-        //             '''
-        //         }
-        //     }
-        // }
+        // 11. Verify the Deployment (Check Pods & Services in Kubernetes Namespace)
+        stage('Verify the Deployment') {
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: "${env.K8S_CREDENTIAL_ID}", namespace: "${env.APP_NAMESPACE}", restrictKubeConfigAccess: false, serverUrl: "${env.K8S_SERVER_URL}") {
+                    sh "kubectl get pods -n ${env.APP_NAMESPACE}"
+                    sh "kubectl get svc -n ${env.APP_NAMESPACE}"
+                }
+            }
+        }
     }
 
+    // Define post-build actions for the pipeline
     post {
+
+        // Always execute these steps regardless of build success or failure
         always {
-            echo 'Archiving Security & Coverage Reports...'
+
+            // Archive Trivy Security Scan Report
+            echo 'Archiving Trivy Security Scan Report...'
             archiveArtifacts artifacts: '**/dependency-check-report.html', allowEmptyArchive: true
             
-            // Local Docker Image Cleanup
-            echo 'Cleaning up built Docker image from local agent...'
-            sh "docker rmi ${IMAGE_NAME}:${BUILD_NUMBER} || true"
+            // Clean up local Docker images to free up space
+            echo 'Cleaning up local Docker images...'
+            sh "docker rmi ${env.IMAGE_NAME}:${BUILD_NUMBER} || true"
 
             cleanWs()
         }
         
+        // Execute these steps only if the build is successful
         success {
-            echo "Build #${BUILD_NUMBER} deployed successfully to Kubernetes namespace '${APP_NAMESPACE}'!"
+            echo "Build #${BUILD_NUMBER} deployed successfully to Kubernetes namespace '${env.APP_NAMESPACE}'!"
         }
-
+        
+        // Execute these steps only if the build fails
         failure {
             echo "Build #${BUILD_NUMBER} Failed during build or Kubernetes deployment!"
         }

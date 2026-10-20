@@ -1,7 +1,7 @@
 # Setting up Windows Subsystem for Linux (WSL 2) for DevOps Stack
 
 ### Overview
-Setting up a native Linux environment on Windows is essential for modern DevOps practices. **Windows Subsystem for Linux 2 (WSL 2)** provides a lightweight Linux environment that runs directly alongside Windows without requiring a traditional virtual machine.
+Setting up a native Linux environment on Windows is essential for modern DevOps practices. **Windows Subsystem for Linux 2 (WSL 2)** provides a lightweight Linux environment that runs directly alongside Windows without requiring a traditional virtual machine. Refer [Microsoft WSL2 Installation Guide](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 WSL 2 uses a real Linux kernel and provides better performance, compatibility, and filesystem support compared to WSL 1. It is well suited for running and managing DevOps tools such as **Docker, Jenkins, Kubernetes, OpenJDK, etc..**.
 

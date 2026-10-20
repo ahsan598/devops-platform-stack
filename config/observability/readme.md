@@ -1,5 +1,5 @@
-# 📊 Observability Stack Setup (Kind)
-A Kubernetes observability stack deployed on WSL2 using Kind (Kubernetes `v1.36+`). Features strict namespace isolation (`monitoring`, `logging`) with pinned helm releases for metrics collection, visualization, and zero-friction log ingestion.
+# 📊 Observability Stack Setup (KIND)
+A Kubernetes observability stack deployed on WSL2 using KIND (Kubernetes `v1.36+`). Features strict namespace isolation (`monitoring`, `logging`) with pinned helm releases for metrics collection, visualization, and zero-friction log ingestion.
 
 ### 📌 Access & Endpoints
 | Tool / Service | Namespace | Access URL / Internal Endpoint |
@@ -143,3 +143,10 @@ kubectl delete pod log-test -n default
 5. Confirm that log lines `Loki integration test log line X` are stream-rendered under log analytics!
 
 ![grafana-logs](/assets/observability/grafana-logs.jpg)
+
+
+### 📚 References & Official Guides
+
+- Follow the installation and configuration steps in the [Prometheus Helm Chart Documentation](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
+- Set up log routing and pipelines via the [Fluent Bit Installation Guide](https://docs.fluentbit.io/manual/5.0/installation/downloads).
+- Deploy and configure log aggregation using the [Grafana Loki Setup Guide](https://grafana.com/docs/loki/latest/setup/install/).

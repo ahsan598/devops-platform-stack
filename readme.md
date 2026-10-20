@@ -38,7 +38,9 @@ devops-platform-stack/
 
 ### ⎈ Containerization, Orchestration & GitOps
 - **Docker, Compose & containerd:** Local container engine, multi-container orchestration, and core container runtime.
-- **Kubernetes (Kind):** Multi-node local Kubernetes clusters running over Docker.
+- **Kubernetes**
+  - **KIND:** Multi-node local Kubernetes clusters running over Docker.
+  - **Kubeadm:** Multi-node production-grade Kubernetes clusters bootstrapped manually on physical servers or virtual machines (like AWS EC2).
 - **Helm & Kustomize:** Package management and declarative manifest customization for Kubernetes deployments.
 - **Argo CD:** GitOps-driven continuous delivery for Kubernetes.
 
@@ -106,8 +108,8 @@ devops-platform-stack/
    # Navigate to Jenkins configuration
    cd config/jenkins/
 
-   # Navigate to Kind configuration
-   cd config/kind/
+   # Navigate to Kubernetes configuration
+   cd config/kubernetes/
 
    # Navigate to Observability configuration
    cd config/observability/

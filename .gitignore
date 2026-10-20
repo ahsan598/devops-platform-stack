@@ -45,12 +45,14 @@ yarn-error.log*
 # ------------------------------------------
 # Terraform State & Crash Logs
 # ------------------------------------------
-.terraform/
+**/.terraform/*
 *.tfstate
 *.tfstate.*
 *.tfvars
 *.tfvars.json
+*.tfplan
 crash.log
+crash.*.log
 
 # ------------------------------------------
 # OS & IDE Files
