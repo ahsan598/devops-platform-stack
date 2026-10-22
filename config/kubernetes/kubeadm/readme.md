@@ -2,11 +2,12 @@
 
 ### Overview:
 
-This guide provides step-by-step instructions to set up a production-ready Kubernetes cluster using kubeadm on AWS EC2 instances (1 Control Plane / Master node and 2 Worker nodes). The infrastructure configurations for provisioning these EC2 instances are available directly within this project repository.
+This guide provides step-by-step instructions to set up a production-ready Kubernetes cluster using kubeadm on AWS EC2 instances (**1 Control Plane and 2 Worker nodes**). The infrastructure configurations for provisioning these EC2 instances are available directly within this project repository.
 
 ### Cluster Specifications:
 - **Control Plane (Master Node):** 1 Instance (t3.medium or higher recommended)
-- **Worker Nodes:** 2 Instances (t3.small / t3.medium recommended)- **Container Runtime:** `containerd`
+- **Worker Nodes:** 2 Instances (t3.small / t3.medium recommended)
+- **Container Runtime:** `containerd`
 - **CNI:** `Flannel`
 - **Kubernetes Version:** `1.36.4` (v1.36 repository)
 
@@ -115,9 +116,8 @@ cat /run/flannel/subnet.env
 journalctl -u kubelet -f
 ```
 
-### 📚 Official References
-Kubernetes Documentation: Installing [kubeadm] (https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
+### 📚 References & Official Guides
 
-Kubernetes Documentation: Creating a cluster with [kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
-
-Flannel CNI [Setup] (https://github.com/flannel-io/flannel)
+- Installing kubernetes with [kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
+- Creating a kubernetes cluster with [kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
+- How to setup [Flannel CNI](https://github.com/flannel-io/flannel) on cluster.

@@ -107,3 +107,8 @@ kind load docker-image my-app:1.0 --name dev-cluster
 # 3. Verify image inside containerd cache
 docker exec -it dev-cluster-control-plane crictl images | grep my-app
 ```
+
+
+### 📚 References & Official Guides
+
+Set up local multi-node clusters using the [KIND quick start guide](https://kind.sigs.k8s.io/docs/user/quick-start/).
