@@ -34,7 +34,23 @@ sudo apt install -y \
   python3-venv \
   python3-full
 
-# 4. Install Node.js 22 LTS via NVM
+# 4. Install Go (Golang)
+
+GO_VERSION="1.26.10"
+
+echo "Installing Go ${GO_VERSION}..."
+curl -fsSL "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tar.gz
+sudo rm -rf /usr/local/go
+sudo tar -C /usr/local -xzf /tmp/go.tar.gz
+rm -f /tmp/go.tar.gz
+
+# Ensure Go is available in the current path and added to profile
+export PATH=$PATH:/usr/local/go/bin
+if ! grep -q "/usr/local/go/bin" ~/.bashrc; then
+  echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+fi
+
+# 5. Install Node.js 22 LTS via NVM
 NODE_VERSION="22.23.1"
 NVM_VERSION="v0.40.3"
 
@@ -65,12 +81,13 @@ fi
 nvm alias default "${NODE_VERSION}"
 nvm use "${NODE_VERSION}"
 
-# 5. Verify Runtime & Package Manager Versions
+# 6. Verify Runtime & Package Manager Versions
 echo "Runtimes & Build Tools Installed:"
 echo "Java: $(java -version 2>&1 | head -n1)"
 echo "Maven: $(mvn --version | head -n1)"
+echo "Python: $(python3 --version)"
+echo "Pip: $(pip3 --version)"
+echo "Go: $(go version)"
 echo "Node.js: $(node --version)"
 echo "npm: $(npm --version)"
 echo "nvm: $(nvm --version)"
-echo "Python: $(python3 --version)"
-echo "Pip: $(pip3 --version)"

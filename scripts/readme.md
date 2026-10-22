@@ -70,3 +70,18 @@ chmod +x scripts/cleanup/*.sh
 ./scripts/cleanup/03-devops-tools.sh
 ./scripts/cleanup/04-container-tools.sh
 ```
+
+### 📥 Tool Installation & Official Guides
+
+- Follow the official [Docker Installation Guide](https://docs.docker.com/engine/install/) to set up the container runtime.
+- Install and configure cloud management tools using the [AWS CLI Installation Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+- Set up [Python](https://www.python.org/downloads/) and its package manager via the [Python Packaging Installation Guide](https://packaging.python.org/en/latest/tutorials/installing-packages/).
+- Configure [Java runtimes](https://openjdk.org/projects/jdk/21/) and build tools using the [Apache Maven Installation Guide](https://maven.apache.org/install.html).
+- Install the Go programming language via the [Go Installation Guide](https://go.dev/doc/install).
+- Manage node versions and packages using the [nvm github repository](https://github.com/nvm-sh/nvm) and [npm documentation](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
+- Set up container and filesystem security scanners using the [Trivy Installation Guide](https://trivy.dev/docs/latest/getting-started/installation/).
+- Install Infrastructure-as-Code tools via the [Terraform CLI Installation Guide](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
+- Set up automation tools using the [Ansible Installation Guide](https://docs.ansible.com/projects/ansible/latest/installation_guide/intro_installation.html).
+- Install version control utilities using the [Git Installation Guide](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+- Install YAML and JSON command-line processors via the [yq repository](https://github.com/mikefarah/yq#install) and [jq download page](https://jqlang.org/download/).
+- Set up build automation utilities using the [GNU Make Documentation](https://www.gnu.org/software/make/).
