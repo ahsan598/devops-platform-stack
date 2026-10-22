@@ -1,6 +1,8 @@
 # 🚀 GitOps Engine Setup (Argo CD)
 A declarative GitOps continuous delivery setup deployed on Kubernetes. Features non-destructive server-side manifest apply, namespace isolation, and deterministic NodePort routing for local access.
 
+Get started with GitOps deployment workflows via the [Argo CD Helm Chart Guide](https://artifacthub.io/packages/helm/argo/argo-cd).
+
 ### 📌 Access & Endpoints
 | Tool / Service | Namespace | Access URL / Internal Endpoint | Credentials |
 | :--- | :--- | :--- | :--- |
@@ -48,7 +50,7 @@ A declarative GitOps continuous delivery setup deployed on Kubernetes. Features 
    ```
 
 > [!NOTE]
-> If you hit token issues or state errors (common in Kind/local clusters), reset ArgoCD:
+> If you hit token issues or state errors (common in KIND/local clusters), reset ArgoCD:
 > ```sh
 >  # 1. Gracefully restart controllers
 >  kubectl rollout restart statefulset argocd-application-controller -n argocd

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Kind Multi-Node Cluster Configuration (1 Control-Plane + 3 Workers)
+# KIND Multi-Node Cluster Configuration (1 Control-Plane + 3 Workers)
 # -----------------------------------------------------------------------------
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4

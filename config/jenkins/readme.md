@@ -42,14 +42,14 @@ Persistent volumes prevent data loss when containers are stopped or recreated:
 Isolated networks are used to route traffic securely between services and prevent unintended inter-container access:
 - **`cicd_network`:** Main network facilitating communication between Jenkins, SonarQube, Nexus, and related tools.
 - **`db_network`:** Isolated network reserved for internal database-to-application traffic.
-- **`kind`:** External/Custom bridge network connecting local Kubernetes (Kind) nodes to the CI/CD ecosystem.
+- **`kind`:** External/Custom bridge network connecting local Kubernetes (KIND) nodes to the CI/CD ecosystem.
 
 ---
 
 >[!IMPORTANT]
 > ### Recommended Stack Setup Order
 > 1. Create Networks (`cicd_network` `kind` `db_network`)
-> 2. Create Kind Cluster (`kind create cluster --name dev-cluster --config kind-config.yaml`)
+> 2. Create KIND Cluster (`kind create cluster --name dev-cluster --config kind-config.yaml`)
 > 3. Extract Host Docker GID & Patch Kubeconfig (`.env` & `jenkins-kubeconfig`)
 > 4. Build Jenkins Image & Deploy Stack (`docker compose up -d --build`)
 > 5. Verify Integrations (`kubectl get nodes` inside Jenkins)
@@ -70,8 +70,8 @@ Isolated networks are used to route traffic securely between services and preven
    echo "DOCKER_GID=$(getent group docker | cut -d: -f3)" >> .env
    ```
 
-### ⚙️ Jenkins to Kind Kubernetes Integration
-Jenkins runs outside the Kind cluster as a Docker container. To enable `kubectl` deployments from Jenkins pipelines to your local Kind cluster, follow these 3 critical steps:
+### ⚙️ Jenkins to KIND Kubernetes Integration
+Jenkins runs outside the KIND cluster as a Docker container. To enable `kubectl` deployments from Jenkins pipelines to your local KIND cluster, follow these 3 critical steps:
 
 **1. Isolated Kubeconfig Copy**
 - Do not mount your host's `~/.kube/config` directly. Create a dedicated copy for Jenkins: 
@@ -195,8 +195,8 @@ After containers are up and running, fetch your initial passwords using the comm
 | :--- | :--- | :--- |
 | Permission denied on `/var/run/docker.sock` | Host Docker GID mismatch with container user group. | Run `echo "DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)" > .env` and restart stack via `docker compose up -d` |
 | Connection refused on `127.0.0.1:6443` | Kubeconfig pointing to host localhost instead of Kind container. | Update `./jenkins-kubeconfig` to point to `https://<kind-control-plane-container>:6443` |
-| Could not resolve host | Jenkins is not on the same Docker network as Kind. | Ensure `kind` network is declared under `external: true` and attached to the `jenkins` service. |
-| SSL Certificate Validation Errors | Self-signed certs used by Kind API server in curl tests. | Use `curl -k` for testing raw connectivity. `kubectl` will handle TLS automatically via the embedded CA data in `jenkins-kubeconfig` |
+| Could not resolve host | Jenkins is not on the same Docker network as KIND. | Ensure `kind` network is declared under `external: true` and attached to the `jenkins` service. |
+| SSL Certificate Validation Errors | Self-signed certs used by KIND API server in curl tests. | Use `curl -k` for testing raw connectivity. `kubectl` will handle TLS automatically via the embedded CA data in `jenkins-kubeconfig` |
 
 
 ### 🛠️ Compose Lifecycle
@@ -213,3 +213,10 @@ After containers are up and running, fetch your initial passwords using the comm
 > [!NOTE]
 > - Daily use: `stop` / `start` is enough when you just want to pause and resume the stack.
 > - Use `down` when you want to remove the Compose containers. Named volumes are normally retained unless you explicitly use `-v`.
+
+
+### 📚 References & Official Guides
+
+- Read the core [Jenkins Documentation](https://www.jenkins.io/doc/) for general reference.
+- Explore the [SonarQube Server Documentation](https://docs.sonarsource.com/sonarqube-server) for static code analysis setup.
+- Review the [Sonatype Nexus Repository Help Center](https://help.sonatype.com/en/sonatype-nexus-repository.html) for artifact management.

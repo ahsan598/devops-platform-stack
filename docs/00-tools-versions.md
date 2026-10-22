@@ -18,6 +18,7 @@
 | **Package Managers** | nvm / npm | `v0.40.3` / `v10.9.8` |
 | | pip | `v24.0` |
 | **Build Tool** | Apache Maven | `v3.9.9` |
+| **GO Lang** | GO Lang | `v1.26.10` |
 
 
 ### 2. Containers & Local Kubernetes
