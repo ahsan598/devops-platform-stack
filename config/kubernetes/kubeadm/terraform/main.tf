@@ -1,27 +1,44 @@
-data "aws_vpc" "default" {
-  default = true
-}
-
+# --------------------------------------------------
+# AWS Provider
+# --------------------------------------------------
 provider "aws" {
   region = var.region
 }
 
-# Automated Security Group for Kubernetes Cluster (Control Plane & Workers)
+# --------------------------------------------------
+# Default VPC
+# --------------------------------------------------
+data "aws_vpc" "default" {
+  default = true
+}
+
+# --------------------------------------------------
+# Default Subnet
+# --------------------------------------------------
+data "aws_subnet" "default" {
+  vpc_id            = data.aws_vpc.default.id
+  availability_zone = var.availability_zone
+  default_for_az    = true
+}
+
+# --------------------------------------------------
+# Security Group for Kubernetes Cluster
+# --------------------------------------------------
 resource "aws_security_group" "k8s_sg" {
   name        = "k8s-cluster-sg"
-  description = "Security group for Kubernetes master and worker nodes"
+  description = "Security group for Kubernetes control plane and workers"
   vpc_id      = data.aws_vpc.default.id
 
-  # SSH Access
+  # SSH - Restrict to your public IP (Restrict access to your trusted IP)
   ingress {
-    description = "SSH"
+    description = "SSH from trusted IP"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Kubernetes API Server
+  # Kubernetes API Server (Restrict access to your trusted IP)
   ingress {
     description = "Kubernetes API Server"
     from_port   = 6443
@@ -30,43 +47,52 @@ resource "aws_security_group" "k8s_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # etcd server client API
+  # etcd - Cluster internal communication only
   ingress {
-    description = "etcd server client API"
+    description = "etcd client and peer communication"
     from_port   = 2379
     to_port     = 2380
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    self        = true
   }
 
-  # Kubelet API
+  # Kubelet API - Cluster internal communication only
   ingress {
     description = "Kubelet API"
     from_port   = 10250
     to_port     = 10250
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    self        = true
   }
 
-  # kube-scheduler & kube-controller-manager
+  # kube-controller-manager
   ingress {
-    description = "Kube Scheduler & Controller"
-    from_port   = 10259
+    description = "Kube Controller Manager"
+    from_port   = 10257
     to_port     = 10257
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    self        = true
   }
 
-  # Flannel CNI Overlay Network (UDP)
+  # kube-scheduler
   ingress {
-    description = "Flannel CNI"
+    description = "Kube Scheduler"
+    from_port   = 10259
+    to_port     = 10259
+    protocol    = "tcp"
+    self        = true
+  }
+
+  # Flannel CNI Overlay Network
+  ingress {
+    description = "Flannel VXLAN"
     from_port   = 8472
     to_port     = 8472
     protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
+    self        = true
   }
 
-  # NodePort Services Range
+  # NodePort Services (Restrict access to your trusted IP)
   ingress {
     description = "NodePort Services"
     from_port   = 30000
@@ -75,18 +101,18 @@ resource "aws_security_group" "k8s_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Allow all traffic within the same security group (Cluster internal communication)
+  # All traffic between cluster nodes using this SG
   ingress {
-    description = "Internal Cluster Communication"
+    description = "Internal cluster communication"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     self        = true
   }
 
-  # Outbound Internet Access
+  # Outbound traffic
   egress {
-    description = "Allow all outbound traffic"
+    description = "Allow outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -98,38 +124,42 @@ resource "aws_security_group" "k8s_sg" {
   }
 }
 
-# Control Plane (Master Node)
+# --------------------------------------------------
+# Kubernetes Control Plane
+# --------------------------------------------------
 resource "aws_instance" "master" {
-  ami                    = var.ami
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.k8s_sg.id]
-
+  ami                         = var.ami
+  instance_type               = var.instance_type
+  key_name                    = var.key_name
+  subnet_id                   = data.aws_subnet.default.id
+  vpc_security_group_ids      = [aws_security_group.k8s_sg.id]
   associate_public_ip_address = true
 
   root_block_device {
-    volume_size = 20 # Recommended size for K8s master
+    volume_size = 20
     volume_type = "gp3"
   }
 
   tags = {
     Name = "k8s-master"
-    Role = "master"
+    Role = "control-plane"
   }
 }
 
-# Worker Nodes
+# --------------------------------------------------
+# Kubernetes Worker Nodes
+# --------------------------------------------------
 resource "aws_instance" "workers" {
-  count                  = 2
-  ami                    = var.ami
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.k8s_sg.id]
-
+  count                       = 2
+  ami                         = var.ami
+  instance_type               = var.instance_type
+  key_name                    = var.key_name
+  subnet_id                   = data.aws_subnet.default.id
+  vpc_security_group_ids      = [aws_security_group.k8s_sg.id]
   associate_public_ip_address = true
 
   root_block_device {
-    volume_size = 20 # Recommended size for K8s workers
+    volume_size = 20
     volume_type = "gp3"
   }
 

@@ -27,6 +27,7 @@ devops-platform-stack/
 
 ### 💻 Application Development
 - **Java & Maven:** Enterprise backend runtime and build automation.
+- **Go (Golang):** High-performance systems programming language and backend tooling.
 - **Node.js, npm:** JavaScript, TypeScript runtime and package manager 
   - **nvm:** Node.js version manager for installing and switching between Node.js versions.
 - **Python, pip & venv:** Automation scripting, package management, and isolated virtual environment utilities.
