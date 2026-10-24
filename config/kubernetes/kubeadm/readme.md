@@ -23,12 +23,13 @@ This guide builds a self-managed Kubernetes cluster on AWS EC2 using `kubeadm` (
 
 ### 0. Before you begin
 
-1. Provision three Ubuntu 24.04 EC2 instances using the Terraform configuration: one control plane and two workers.
+1. Provision three `Ubuntu 24.04` EC2 instances using the Terraform configuration: one control plane and two workers.
 2. Ensure all three nodes can reach one another over their **private IP addresses**. Use the control plane's private IP in the `kubeadm join` command.
 3. Use an EC2 key pair to SSH into the instances. Keep the private `.pem` file private and outside version control.
-4. In the EC2 Security Group, allow SSH (TCP `22`) only from your trusted public IP. Allow Kubernetes and CNI traffic only between cluster nodes or from specific trusted clients that need it. Do not expose etcd (`2379-2380`), kubelet (`10250`), scheduler (`10259`), or controller-manager (`10257`) to `0.0.0.0/0`.
-5. For Flannel's VXLAN backend, allow **UDP `8472` between cluster nodes**. If you expose NodePort applications, restrict TCP `30000-32767` to the clients that need them.
-6. Confirm the selected AWS region has the AMI, key pair, VPC, and subnet required by your Terraform variables.
+4. In the EC2 Security Group, allow SSH (TCP `22`) only from your trusted public IP (`curl -4 https://checkip.amazonaws.com`).
+5. Allow Kubernetes and CNI traffic only between cluster nodes or from specific trusted clients that need it. Do not expose etcd (`2379-2380`), kubelet (`10250`), scheduler (`10259`), or controller-manager (`10257`) to `0.0.0.0/0`.
+6. For Flannel's VXLAN backend, allow **UDP `8472` between cluster nodes**. If you expose NodePort applications, restrict TCP `30000-32767` to the clients that need them.
+7. Confirm the selected AWS region has the AMI, key pair, VPC, and subnet required by your Terraform variables.
 
 The required Kubernetes ports depend on the components and networking mode. See the official [Kubernetes ports and protocols reference](https://kubernetes.io/docs/reference/networking/ports-and-protocols/).
 
@@ -37,7 +38,7 @@ The required Kubernetes ports depend on the components and networking mode. See 
 
 Run these commands on **all three nodes**. This guide uses the standard kubeadm configuration with swap disabled.
 
-```bash
+```sh
 # Refresh Ubuntu package metadata and install basic download/certificate tools.
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg
@@ -75,7 +76,7 @@ Expected sysctl values should be `1`. If a check fails, resolve it before instal
 
 `containerd` pulls and manages container images and runs containers through the Container Runtime Interface (CRI). These commands install a pinned upstream binary release for Linux AMD64.
 
-```bash
+```sh
 # Download the pinned containerd release. Keep all nodes on the same version.
 curl -fLO https://github.com/containerd/containerd/releases/download/v2.3.7/containerd-2.3.7-linux-amd64.tar.gz
 sudo tar -C /usr/local -xzf containerd-2.3.7-linux-amd64.tar.gz
@@ -109,7 +110,7 @@ grep -n 'SystemdCgroup' /etc/containerd/config.toml
 
 `runc` is the low-level OCI runtime used by containerd to create containers. The standard CNI plugin bundle provides networking binaries such as `loopback`, `bridge`, and `host-local`. Flannel itself is installed as a Kubernetes DaemonSet in Step 7.
 
-```bash
+```sh
 # Install the pinned runc binary for Linux AMD64.
 curl -fLO https://github.com/opencontainers/runc/releases/download/v1.4.3/runc.amd64
 sudo install -m 755 runc.amd64 /usr/local/sbin/runc
@@ -131,7 +132,7 @@ rm -f containerd-2.3.7-linux-amd64.tar.gz containerd.service runc.amd64 cni-plug
 
 Use the Kubernetes v1.36 package repository and install the exact `1.36.4-1.1` package versions. `apt-mark hold` prevents ordinary package upgrades from unexpectedly changing the cluster version.
 
-```bash
+```sh
 # Create the directory used for APT repository signing keys.
 sudo install -m 0755 -d /etc/apt/keyrings
 
@@ -160,26 +161,58 @@ If APT reports that the exact package version is unavailable, check the package 
 
 ### 5. Configure the container runtime endpoint [Master & Workers]
 
-`crictl` is a diagnostic CLI for inspecting containers and pods through CRI. Configure it to use containerd's Unix socket so runtime checks do not rely on automatic endpoint discovery.
+**crictl** is a diagnostic CLI for inspecting containers and pods through the Container Runtime Interface (CRI). Configure it to use containerd's Unix socket so runtime checks do not rely on automatic endpoint discovery.
 
-```bash
-# Configure crictl if it is installed on the node.
-# Install crictl from a pinned cri-tools release first if it is not present.
+**Step 1: Install a pinned crictl release**
+```sh
+# Set the crictl version.
+CRICTL_VERSION="v1.36.0"
+
+# Download the pinned release.
+wget "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-amd64.tar.gz"
+
+# Extract the binary.
+tar -xzf "crictl-${CRICTL_VERSION}-linux-amd64.tar.gz"
+
+# Install crictl.
+sudo install -m 755 crictl /usr/local/bin/crictl
+
+# Clean up downloaded files.
+rm -f crictl crictl-${CRICTL_VERSION}-linux-amd64.tar.gz
+
+# Verify the installed version.
+crictl --version
+```
+
+**Step 2: Configure the containerd endpoint**
+```sh
+# Configure the containerd runtime endpoint.
 sudo crictl config --set runtime-endpoint=unix:///run/containerd/containerd.sock
-sudo crictl config --set image-endpoint=unix:///run/containerd/containerd.sock
 
-# Check containerd through CRI (requires crictl to be installed).
+# Configure the containerd image endpoint.
+sudo crictl config --set image-endpoint=unix:///run/containerd/containerd.sock
+```
+
+**Step 3: Verify the runtime connection**
+```sh
+# Display container runtime information.
 sudo crictl info
+
+# List running containers.
+sudo crictl ps
+
+# List downloaded container images.
+sudo crictl images
 ```
 
 > [!NOTE]
-> If `crictl` is not installed, either install a pinned `cri-tools` release compatible with your environment or skip these diagnostic commands. `kubeadm` does not require the `crictl` CLI to be installed.
+> If crictl info returns containerd runtime information, the CRI connection is working. If crictl is not installed, install a compatible pinned cri-tools release or skip these diagnostic commands. kubeadm does not require the crictl CLI to be installed.
 
 ### 6. Initialize the control plane [Control plane only]
 
 Run this on the control-plane node only. Pod CIDR `10.244.0.0/16` matches the Flannel manifest used in Step 7. The advertise address should be the control plane's **private EC2 IP**, reachable by the workers.
 
-```bash
+```sh
 # Replace <MASTER_PRIVATE_IP> with the control plane's actual private IPv4 address.
 sudo kubeadm init \
   --apiserver-advertise-address=<MASTER_PRIVATE_IP> \
@@ -193,7 +226,7 @@ When initialization completes, **copy and securely keep the `kubeadm join` comma
 
 Run these commands as the regular user that will administer the cluster (not from a root shell). The admin kubeconfig grants powerful cluster privileges, so keep it private.
 
-```bash
+```sh
 mkdir -p "$HOME/.kube"
 sudo cp /etc/kubernetes/admin.conf "$HOME/.kube/config"
 sudo chown "$(id -u):$(id -g)" "$HOME/.kube/config"
@@ -208,7 +241,7 @@ The node may remain `NotReady` until the CNI is installed; this is expected at t
 
 Flannel supplies Pod networking across nodes. This guide uses its VXLAN backend, which encapsulates traffic between nodes; the pod network in its manifest must match `10.244.0.0/16` from `kubeadm init`.
 
-```bash
+```sh
 # Apply the pinned Flannel manifest from the v0.28.8 release.
 kubectl apply -f https://github.com/flannel-io/flannel/releases/download/v0.28.8/kube-flannel.yml
 
@@ -222,7 +255,7 @@ Wait for Flannel pods to become `Running` before diagnosing node readiness. Ensu
 
 Run the join command printed by `kubeadm init` on **each worker node**. Use the control plane's private IP address and the full token and CA certificate hash generated by kubeadm.
 
-```bash
+```sh
 sudo kubeadm join <MASTER_PRIVATE_IP>:6443 \
   --token <TOKEN> \
   --discovery-token-ca-cert-hash sha256:<CA_CERT_HASH>
@@ -230,7 +263,7 @@ sudo kubeadm join <MASTER_PRIVATE_IP>:6443 \
 
 If the command was not saved, generate a new one on the control plane:
 
-```bash
+```sh
 sudo kubeadm token create --print-join-command
 ```
 
@@ -238,7 +271,7 @@ Do not copy placeholder values literally; replace them with the actual values ge
 
 ### 9. Verify the cluster [Control plane]
 
-```bash
+```sh
 # All three nodes should eventually show Ready.
 kubectl get nodes -o wide
 
@@ -261,7 +294,7 @@ Node and Pod statuses may take a few minutes to settle. Do not proceed until nod
 
 Run these on the node where the issue occurs, unless a command says otherwise.
 
-```bash
+```sh
 # Check containerd and kubelet services.
 sudo systemctl --no-pager --full status containerd
 sudo systemctl --no-pager --full status kubelet

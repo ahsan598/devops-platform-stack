@@ -1,12 +1,12 @@
 # Kubernetes Infrastructure Stacks
 
-This directory contains multi-node Kubernetes cluster configurations for both local development and cloud-based production-like environments.
+This directory contains multi-node Kubernetes cluster configurations for both local development and cloud-based learning environments.
 
 
 ### 📂 Directory Structure
 
-* **`Kind/`** – Local multi-node Kubernetes cluster running inside Docker containers for rapid development and testing.
-* **`Kubeadm/`** – Production-grade multi-node Kubernetes cluster bootstrapped on AWS EC2 instances via Terraform.
+- **`Kind/`** – A local multi-node Kubernetes cluster running inside Docker containers for development, experimentation and testing.
+- **`Kubeadm/`** – A multi-node Kubernetes learning cluster bootstrapped on cloud using Terraform, providing practical experience with cloud infrastructure and cluster setup.
 
 
 ### 🚀 Environment Comparison

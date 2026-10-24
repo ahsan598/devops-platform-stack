@@ -1,3 +1,17 @@
+#--------------------------------------------------
+# Terraform Configuration for Kubernetes Cluster on AWS
+#--------------------------------------------------
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "6.69.0"
+    }
+  }
+
+  required_version = ">= 1.5.0"
+}
+
 # --------------------------------------------------
 # AWS Provider
 # --------------------------------------------------
@@ -29,22 +43,24 @@ resource "aws_security_group" "k8s_sg" {
   description = "Security group for Kubernetes control plane and workers"
   vpc_id      = data.aws_vpc.default.id
 
-  # SSH - Restrict to your public IP (Restrict access to your trusted IP)
+  # SSH access from your trusted IP
   ingress {
     description = "SSH from trusted IP"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.my_public_ip]
+    # cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Kubernetes API Server (Restrict access to your trusted IP)
+  # Kubernetes API Server - Restrict access to your trusted IP
   ingress {
     description = "Kubernetes API Server"
     from_port   = 6443
     to_port     = 6443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.my_public_ip]
+    # cidr_blocks = ["0.0.0.0/0"]
   }
 
   # etcd - Cluster internal communication only
@@ -92,13 +108,14 @@ resource "aws_security_group" "k8s_sg" {
     self        = true
   }
 
-  # NodePort Services (Restrict access to your trusted IP)
+  # NodePort Services - Allow access from your trusted IP
   ingress {
     description = "NodePort Services"
     from_port   = 30000
     to_port     = 32767
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.my_public_ip]
+    # cidr_blocks = ["0.0.0.0/0"]
   }
 
   # All traffic between cluster nodes using this SG

@@ -45,8 +45,9 @@ chmod +x scripts/install/*.sh
 > [!IMPORTANT]
 > - After running `04-container-tools.sh`, refresh your group membership by running `newgrp docker` (or restart your terminal) to run Docker without `sudo`.
 
-## 🔒 Lock Tool Versions (Prevent Auto-Upgrades)
-To prevent package managers from accidentally upgrading production-critical binaries during routine `apt upgrade` runs:
+### 🔒 Lock Tool Versions (Prevent Unintended Upgrades)
+
+To prevent package managers from unintentionally upgrading pinned tool versions during routine apt upgrade operations, helping maintain a consistent and predictable learning environment.
 ```sh
 # Hold Docker and Trivy versions
 sudo apt-mark hold docker-ce docker-ce-cli containerd.io trivy
