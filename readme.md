@@ -27,6 +27,7 @@ devops-platform-stack/
 
 ### 💻 Application Development
 - **Java & Maven:** Enterprise backend runtime and build automation.
+- **Go (Golang):** High-performance systems programming language and backend tooling.
 - **Node.js, npm:** JavaScript, TypeScript runtime and package manager 
   - **nvm:** Node.js version manager for installing and switching between Node.js versions.
 - **Python, pip & venv:** Automation scripting, package management, and isolated virtual environment utilities.
@@ -39,8 +40,8 @@ devops-platform-stack/
 ### ⎈ Containerization, Orchestration & GitOps
 - **Docker, Compose & containerd:** Local container engine, multi-container orchestration, and core container runtime.
 - **Kubernetes**
-  - **KIND:** Multi-node local Kubernetes clusters running over Docker.
-  - **Kubeadm:** Multi-node production-grade Kubernetes clusters bootstrapped manually on physical servers or virtual machines (like AWS EC2).
+  - **KIND:** Multi-node Kubernetes clusters running over Docker.
+  - **Kubeadm:** Multi-node kubernetes clusters over cloud infrastructure.
 - **Helm & Kustomize:** Package management and declarative manifest customization for Kubernetes deployments.
 - **Argo CD:** GitOps-driven continuous delivery for Kubernetes.
 

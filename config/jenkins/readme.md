@@ -1,5 +1,6 @@
 # 🔄 CI/CD Infrastructure Stack
-This repository spins up a production-ready CI/CD environment comprising Jenkins (Custom Agent), SonarQube (with PostgreSQL backend), and Nexus Repository Manager 3.
+
+This repository provides a CI/CD learning environment comprising Jenkins with a custom agent, SonarQube with a PostgreSQL backend, and Nexus Repository Manager 3.
 
 ### 🚀 Stack Overview
 | Service | Container Name | Port | Base Image / Version |
@@ -27,8 +28,8 @@ The Jenkins container is granted access to the host's Docker daemon to build con
 - **Read-Only Kubeconfig:** The cluster config is mounted at `./jenkins-kubeconfig:/var/jenkins_home/.kube/config:ro` allowing automated deployment jobs to interact with Kubernetes securely.
 
 **4. Dedicated Database for SonarQube**
-SonarQube's default embedded **H2 database** is not intended for production usage:
-  - A dedicated `postgres:17-alpine` service handles database persistence.
+SonarQube's default embedded **H2 database** is intended for evaluation and testing.
+  - A dedicated `postgres:17-alpine` service provides a separate database backend for this learning environment.
   - A strict `healthcheck` constraint is defined under `depends_on` to ensure SonarQube waits until PostgreSQL is fully ready to accept connections.
 
 ### 💾 Persistent Volumes
