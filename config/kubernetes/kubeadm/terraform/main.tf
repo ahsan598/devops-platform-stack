@@ -44,9 +44,9 @@ resource "aws_security_group" "k8s_sg" {
   vpc_id      = data.aws_vpc.default.id
 
   tags = {
-    Name        = "k8s-cluster-sg"
-    Project     = "learning"
-    ManagedBy    = "Terraform"
+    Name      = "k8s-cluster-sg"
+    Project   = "learning"
+    ManagedBy = "Terraform"
   }
 }
 
@@ -129,18 +129,48 @@ resource "aws_vpc_security_group_ingress_rule" "kubelet" {
   }
 }
 
-# Flannel CNI - Permit communication between cluster nodes.
-resource "aws_vpc_security_group_ingress_rule" "flannel_vxlan" {
+# # Flannel CNI - Permit communication between cluster nodes.
+# resource "aws_vpc_security_group_ingress_rule" "flannel_vxlan" {
+#   security_group_id = aws_security_group.k8s_sg.id
+
+#   description                  = "Flannel VXLAN node-to-node traffic"
+#   referenced_security_group_id = aws_security_group.k8s_sg.id
+#   from_port                    = 8472
+#   to_port                      = 8472
+#   ip_protocol                  = "udp"
+
+#   tags = {
+#     Name = "flannel-cni-vxlan"
+#   }
+# }
+
+# Calico CNI - Permit communication between cluster nodes.
+resource "aws_vpc_security_group_ingress_rule" "calico_bgp" {
   security_group_id = aws_security_group.k8s_sg.id
 
-  description                  = "Flannel VXLAN node-to-node traffic"
+  description                  = "Calico BGP node-to-node traffic"
   referenced_security_group_id = aws_security_group.k8s_sg.id
-  from_port                    = 8472
-  to_port                      = 8472
+  from_port                    = 179
+  to_port                      = 179
+  ip_protocol                  = "tcp"
+
+  tags = {
+    Name = "calico-cni-bgp"
+  }
+}
+
+# Calico VXLAN
+resource "aws_vpc_security_group_ingress_rule" "calico_vxlan" {
+  security_group_id = aws_security_group.k8s_sg.id
+
+  description                  = "Calico VXLAN node-to-node traffic"
+  referenced_security_group_id = aws_security_group.k8s_sg.id
+  from_port                    = 4789
+  to_port                      = 4789
   ip_protocol                  = "udp"
 
   tags = {
-    Name = "flannel-cni-vxlan"
+    Name = "calico-cni-vxlan"
   }
 }
 
@@ -193,10 +223,10 @@ resource "aws_instance" "master" {
   }
 
   tags = {
-    Name        = "k8s-master"
-    Role        = "control-plane"
-    Project = "learning"
-    ManagedBy   = "Terraform"
+    Name      = "k8s-master"
+    Role      = "control-plane"
+    Project   = "learning"
+    ManagedBy = "Terraform"
   }
 }
 
@@ -219,9 +249,9 @@ resource "aws_instance" "workers" {
   }
 
   tags = {
-    Name        = "k8s-worker-${count.index + 1}"
-    Role        = "worker"
-    Project = "learning"
-    ManagedBy   = "Terraform"
+    Name      = "k8s-worker-${count.index + 1}"
+    Role      = "worker"
+    Project   = "learning"
+    ManagedBy = "Terraform"
   }
 }

@@ -1,40 +1,55 @@
-#  Kubernetes Setup using kubeadm (Ubuntu 24.04)
+#  Kubernetes Multi-Node Cluster using kubeadm
 
 ### Overview:
 
-This guide builds a self-managed Kubernetes cluster on AWS EC2 using `kubeadm` (**1 Control Plane and 2 Worker nodes**). The Terraform files in this repository provision the EC2 infrastructure; the steps below install and configure software on those instances.
+This guide builds a self-managed Kubernetes cluster on **Ubuntu 24.04 LTS** with **1 Control Plane and 2 Worker nodes**. Terraform provisions EC2 instance and the security group; kubeadm bootstraps Kubernetes; Calico provides Pod networking and NetworkPolicy support.
 
-> [!NOTE] 
-> This is a learning cluster, not a production-hardened deployment. Review AWS costs, restrict network access, and do not expose internal Kubernetes ports to the public internet.
-
-
-### Cluster specifications
-
-- **OS:** Ubuntu Server 24.04 LTS, `linux/amd64`
-- **Control plane:** 1 EC2 instance (`t3.medium` or larger recommended)
-- **Workers:** 2 EC2 instances (`t3.small` / `t3.medium`, depending on workloads)
-- **Container runtime:** `containerd` **2.3.7**
-- **OCI runtime:** `runc` **1.4.3**
-- **CNI plugin binaries:** `containernetworking/plugins` **1.8.0**
-- **CNI:** Flannel **v0.28.8**, VXLAN backend
-- **Kubernetes:** **v1.36.4** (`kubelet`, `kubeadm`, and `kubectl` pinned to this patch release)
-- **Pod CIDR:** `10.244.0.0/16` (must match Flannel's network configuration)
+> [!IMPORTANT]
+> This is a learning setup, not production hardened. Restrict SSH/API access to trusted IPs, keep nodes communicating over private IPs, and never expose internal Kubernetes ports to the public internet. Review AWS costs before provisioning.
 
 
-### 0. Before you begin
+### Architecture
+![architecture](/assets/kubernetes/kubeadm-architecture.png)
 
-1. Provision three `Ubuntu 24.04` EC2 instances using the Terraform configuration: one control plane and two workers.
-2. Ensure all three nodes can reach one another over their **private IP addresses**. Use the control plane's private IP in the `kubeadm join` command.
-3. Use an EC2 key pair to SSH into the instances. Keep the private `.pem` file private and outside version control.
-4. In the EC2 Security Group, allow SSH (TCP `22`) only from your trusted public IP (`curl -4 https://checkip.amazonaws.com`).
-5. Allow Kubernetes and CNI traffic only between cluster nodes or from specific trusted clients that need it. Do not expose etcd (`2379-2380`), kubelet (`10250`), scheduler (`10259`), or controller-manager (`10257`) to `0.0.0.0/0`.
-6. For Flannel's VXLAN backend, allow **UDP `8472` between cluster nodes**. If you expose NodePort applications, restrict TCP `30000-32767` to the clients that need them.
-7. Confirm the selected AWS region has the AMI, key pair, VPC, and subnet required by your Terraform variables.
+
+### Key components
+
+- **Terraform:** Provision ec2 instance for control-plane and worker nodes.
+- **kubeadm:** bootstraps the control plane and joins worker nodes.
+- **kube-apiserver:** Kubernetes API entry point.
+- **etcd:** stores cluster state (runs on the control plane).
+- **kube-scheduler:** selects nodes for newly created Pods.
+- **kube-controller-manager:** runs controllers that reconcile desired and actual state.
+- **kubelet:** manages Pods on each node; **containerd** is the container runtime.
+- **kube-proxy:** implements Service networking on nodes.
+- **Calico:** CNI networking and NetworkPolicy.
+
+### Pinned versions and network
+
+| Component | Version / setting |
+|---|---|
+| OS / architecture | Ubuntu Server 24.04 LTS, Linux AMD64 |
+| Kubernetes (`kubelet`, `kubeadm`, `kubectl`) | `1.36.4-1.1` packages |
+| containerd | `2.3.7` |
+| runc | `1.4.3` |
+| crictl (optional diagnostics) | `v1.36.0` |
+| Calico | `v3.32.2` |
+| Pod CIDR | `192.168.0.0/16` (matches Calico manifest default) |
+
+
+
+### 1. Before you begin
+
+1. Set Terraform variables for your AWS region, Ubuntu 24.04 AMD64 AMI, key pair, availability zone, instance type, and your trusted public IP (`my_public_ip`, CIDR notation such as `203.0.113.10/32`).
+2. Provision three EC2 instances: one control plane and two workers. For a learning cluster, use at least `t3.medium` for the control plane; size workers for your workloads.
+3. Make sure all nodes can communicate over their **private IPs**. Use the control plane's private IP for `kubeadm init` and `kubeadm join`.
+4. Keep the `.pem` key and Kubernetes admin credentials out of Git.
+5. Security group requirements: SSH `22` from your trusted IP; API `6443` from trusted admin IPs and cluster nodes; required node-to-node Kubernetes traffic; Restrict NodePort `30000-32767` to trusted clients only if needed.
 
 The required Kubernetes ports depend on the components and networking mode. See the official [Kubernetes ports and protocols reference](https://kubernetes.io/docs/reference/networking/ports-and-protocols/).
 
 
-### 1. Prepare the operating system [Master & Workers]
+### 2. Prepare all nodes (control plane + workers)
 
 Run these commands on **all three nodes**. This guide uses the standard kubeadm configuration with swap disabled.
 
@@ -72,7 +87,7 @@ sysctl net.ipv4.ip_forward net.bridge.bridge-nf-call-iptables net.bridge.bridge-
 
 Expected sysctl values should be `1`. If a check fails, resolve it before installing Kubernetes.
 
-### 2. Install containerd [Master & Workers]
+### 3. Install containerd  (control plane + workers)
 
 `containerd` pulls and manages container images and runs containers through the Container Runtime Interface (CRI). These commands install a pinned upstream binary release for Linux AMD64.
 
@@ -103,10 +118,9 @@ containerd --version
 grep -n 'SystemdCgroup' /etc/containerd/config.toml
 ```
 
-> [!NOTE]
-> **Why `SystemdCgroup = true`?** Ubuntu 24.04 uses systemd, and Kubernetes recommends using the same cgroup driver for kubelet and the container runtime. Confirm that `SystemdCgroup = true` appears under the runc runtime options before continuing.
+Confirm `SystemdCgroup = true` is set in `/etc/containerd/config.toml` under the runc runtime options before continuing.
 
-### 3. Install runc and CNI plugin binaries [Master & Workers]
+### 4. Install runc and CNI plugin binaries  (control plane + workers)
 
 `runc` is the low-level OCI runtime used by containerd to create containers. The standard CNI plugin bundle provides networking binaries such as `loopback`, `bridge`, and `host-local`. Flannel itself is installed as a Kubernetes DaemonSet in Step 7.
 
@@ -128,7 +142,7 @@ ls -1 /opt/cni/bin | head
 rm -f containerd-2.3.7-linux-amd64.tar.gz containerd.service runc.amd64 cni-plugins-linux-amd64-v1.8.0.tgz
 ```
 
-### 4. Install Kubernetes packages [Master & Workers]
+### 5. Install Kubernetes packages  (control plane + workers)
 
 Use the Kubernetes v1.36 package repository and install the exact `1.36.4-1.1` package versions. `apt-mark hold` prevents ordinary package upgrades from unexpectedly changing the cluster version.
 
@@ -159,7 +173,7 @@ kubectl version --client
 
 If APT reports that the exact package version is unavailable, check the package versions published in the official repository before changing the pin. Do not silently install a different Kubernetes patch release.
 
-### 5. Configure the container runtime endpoint [Master & Workers]
+### 6. Configure the container runtime endpoint  (control plane + workers)
 
 **crictl** is a diagnostic CLI for inspecting containers and pods through the Container Runtime Interface (CRI). Configure it to use containerd's Unix socket so runtime checks do not rely on automatic endpoint discovery.
 
@@ -208,7 +222,7 @@ sudo crictl images
 > [!NOTE]
 > If crictl info returns containerd runtime information, the CRI connection is working. If crictl is not installed, install a compatible pinned cri-tools release or skip these diagnostic commands. kubeadm does not require the crictl CLI to be installed.
 
-### 6. Initialize the control plane [Control plane only]
+### 7. Initialize the control plane (Control plane only)
 
 Run this on the control-plane node only. Pod CIDR `10.244.0.0/16` matches the Flannel manifest used in Step 7. The advertise address should be the control plane's **private EC2 IP**, reachable by the workers.
 
@@ -222,7 +236,7 @@ sudo kubeadm init \
 
 When initialization completes, **copy and securely keep the `kubeadm join` command** printed at the end. It is required to add workers. Treat bootstrap tokens as credentials and do not publish them in a repository or screenshot.
 
-### Configure kubectl [Control plane only]
+### 8. Configure kubectl (Control plane only)
 
 Run these commands as the regular user that will administer the cluster (not from a root shell). The admin kubeconfig grants powerful cluster privileges, so keep it private.
 
@@ -234,11 +248,24 @@ sudo chown "$(id -u):$(id -g)" "$HOME/.kube/config"
 # Confirm kubectl can reach the API server.
 kubectl get nodes
 ```
-
 The node may remain `NotReady` until the CNI is installed; this is expected at this stage.
 
-### 7. Install Flannel CNI [Control plane only]
+> [!IMPORTANT]
+> Use either Calico or Flannel as the CNI plugin for Pod networking. Do not use both simultaneously.
 
+### 9.1. Install pinned Calico CNI (control plane)
+
+Calico supplies Pod networking across nodes. Its default Pod pool is `192.168.0.0/16`, matching from `kubeadm init`.
+
+```sh
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.32.2/manifests/calico.yaml
+kubectl get pods -n kube-system -w
+```
+
+Wait for Calico to become healthy before joining workers. If the manifest's namespace differs in the selected release, inspect the created Calico pods with `kubectl get pods -A | grep -i calico`.
+
+
+### 9.2. Install Flannel CNI (Control plane only) (Optional)
 Flannel supplies Pod networking across nodes. This guide uses its VXLAN backend, which encapsulates traffic between nodes; the pod network in its manifest must match `10.244.0.0/16` from `kubeadm init`.
 
 ```sh
@@ -248,10 +275,9 @@ kubectl apply -f https://github.com/flannel-io/flannel/releases/download/v0.28.8
 # Watch Flannel and system pods start.
 kubectl get pods -n kube-flannel -w
 ```
-
 Wait for Flannel pods to become `Running` before diagnosing node readiness. Ensure the EC2 Security Group allows UDP `8472` between cluster nodes for Flannel VXLAN traffic. Do not open this port to the public internet.
 
-### 8. Join worker nodes [Run on each worker]
+### 10. Join worker nodes (Run on each worker)
 
 Run the join command printed by `kubeadm init` on **each worker node**. Use the control plane's private IP address and the full token and CA certificate hash generated by kubeadm.
 
@@ -269,7 +295,7 @@ sudo kubeadm token create --print-join-command
 
 Do not copy placeholder values literally; replace them with the actual values generated by kubeadm.
 
-### 9. Verify the cluster [Control plane]
+### 11. Verify the cluster (Control plane only)
 
 ```sh
 # All three nodes should eventually show Ready.
@@ -290,7 +316,7 @@ kubectl delete pod nginx
 
 Node and Pod statuses may take a few minutes to settle. Do not proceed until nodes are `Ready` and networking pods are healthy.
 
-### 10. Common checks and troubleshooting
+### Common checks and troubleshooting
 
 Run these on the node where the issue occurs, unless a command says otherwise.
 
@@ -300,18 +326,15 @@ sudo systemctl --no-pager --full status containerd
 sudo systemctl --no-pager --full status kubelet
 
 # Follow kubelet logs while troubleshooting node registration or pod startup.
-sudo journalctl -u kubelet -f
+sudo journalctl -u kubelet -f --since '15 minutes ago' --no-pager
 
 # Review containerd logs.
-sudo journalctl -u containerd --since '15 minutes ago'
+sudo journalctl -u containerd --since '15 minutes ago' --no-pager
 
-# Check Flannel pod status and logs from the control plane.
-kubectl get pods -n kube-flannel -o wide
-kubectl logs -n kube-flannel -l app=flannel --all-containers=true --tail=100
-
-# Inspect Flannel's subnet file on a node after Flannel has started there.
-ls -la /run/flannel
-cat /run/flannel/subnet.env
+# Check Calico pod status and logs from the control plane.
+kubectl describe node <NODE_NAME>
+kubectl get pods -A -o wide
+kubectl logs -n kube-system <calico_pod_name> --all-containers=true --tail=100
 
 # Check node addresses and routes.
 ip -br address
@@ -322,8 +345,8 @@ ip route
 
 - **Swap is still enabled:** verify with `swapon --show` and disable it for this standard kubeadm setup.
 - **Containerd is unhealthy:** check its service logs, confirm `SystemdCgroup = true`, and verify the CRI socket at `/run/containerd/containerd.sock`.
-- **Pod CIDR mismatch:** `kubeadm init` uses `10.244.0.0/16`; Flannel's configured network must match it.
-- **Security Group blocks node traffic:** verify private-node connectivity, TCP `6443` to the API server, required Kubernetes node ports, and UDP `8472` between nodes for Flannel VXLAN.
+- **Pod CIDR mismatch:** `kubeadm init` uses `192.168.0.0/16`; Calico's configured network must match it.
+- **Security Group blocks node traffic:** verify private-node connectivity, TCP `6443` to the API server, required Kubernetes node ports.
 - **Incorrect public/private address selection:** use the control plane's private IP for worker joining and ensure each node advertises a reachable address.
 - **Wrong CPU architecture:** these download URLs are for Linux AMD64; use matching ARM64 artifacts if your EC2 instances use ARM.
 
@@ -331,12 +354,10 @@ ip route
 
 ### 📚 References & Official Guides
 
-- [Kubernetes: Installing kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
-- [Kubernetes: Creating a cluster with kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
-- [Kubernetes: Ports and protocols](https://kubernetes.io/docs/reference/networking/ports-and-protocols/)
-- [Kubernetes: Container runtimes](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
-- [containerd releases and Kubernetes compatibility](https://github.com/containerd/containerd/blob/main/RELEASES.md)
-- [runc releases](https://github.com/opencontainers/runc/releases)
-- [CNI plugins releases](https://github.com/containernetworking/plugins/releases)
-- [Flannel releases](https://github.com/flannel-io/flannel/releases)
+- [Kubernetes kubeadm installation](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
+- [Create a cluster with kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
+- [Calico on Kubernetes](https://docs.tigera.io/calico/latest/getting-started/kubernetes/quickstart)
+- [Kubernetes Container runtimes](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
+- [Kubernetes Network plugins](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)
+- [Kubernetes Addons](https://kubernetes.io/docs/concepts/cluster-administration/addons/)
 - [Flannel Kubernetes installation notes](https://github.com/flannel-io/flannel/blob/master/Documentation/kubernetes.md)

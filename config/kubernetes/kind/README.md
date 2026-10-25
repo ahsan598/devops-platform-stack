@@ -55,7 +55,7 @@ Check that all 4 nodes are in the `Ready` state:
 ```sh
 kubectl get nodes -o wide
 ```
-![kind](/assets/kind/kind-nodes.jpg)
+![kind](/assets/kubernetes/kind-nodes.jpg)
 
 **3. Manage Contexts**
 ```sh
