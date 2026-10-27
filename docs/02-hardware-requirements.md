@@ -9,19 +9,7 @@ Before provisioning tools and infrastructure, verify that your host environment 
 | **CPU Cores** | 4 Cores (8 Threads) | 8 Cores |
 | **Disk Space** | 25 GB Free (SSD) | 50 GB Free (SSD preferred) |
 
-### 2. Base Preparation
-Update the system package index and upgrade installed packages:
-```sh
-# Update System Packages
-sudo apt update && sudo apt upgrade -y
-
-# Verify Kernel and Ubuntu Version
-uname -r
-cat /etc/os-release
-```
-![os-details](/assets/prerequisites/os-requirements.jpg)
-
-### 3. WSL2 Setup (Optional — Windows Users Only)
+### 2. WSL2 Setup (Optional — Windows Users Only)
 If you are running on Windows via WSL2, create or update `%USERPROFILE%\.wslconfig` in Windows to allocate sufficient resources:
 ```ini
 [wsl2]
@@ -31,7 +19,7 @@ swap=4GB							# Optional: Swap space
 localhostForwarding=true
 ```
 
-### 4. Control group v2 (`cgroup v2`) Configuration
+### 3. Control group v2 (`cgroup v2`) Configuration
 Kubernetes **v1.36+** (e.g., `v1.36.4`) requires **cgroup v2** for proper resource accounting, cgroup limits, and systemd init driver compatibility inside KIND node containers.
 
 - **Native Linux / EC2 (Ubuntu 22.04 / 24.04 LTS):** `cgroup v2` is enabled by default out of the box. No kernel parameters or host changes are required.
@@ -53,7 +41,7 @@ Kubernetes **v1.36+** (e.g., `v1.36.4`) requires **cgroup v2** for proper resour
   ```
   ![cgroup](/assets/prerequisites/wsl-cgroupv2.jpg)
 
-### 5. Host System Tuning (`inotify` File Watch Limits)
+### 4. Host System Tuning (`inotify` File Watch Limits)
 Observability tools like Fluent Bit, Prometheus, and Loki monitor a vast number of active log files and metrics streams. Increasing `inotify` limits prevents `too many open files` errors and log tailing exhaustion.
 > [!NOTE]
 > This host-level tuning is mandatory for both Native Linux/EC2 and WSL2 environments.

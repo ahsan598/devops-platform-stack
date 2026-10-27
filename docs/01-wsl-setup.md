@@ -25,7 +25,7 @@ Before setting up WSL 2, make sure you have:
   ![install-wsl](/assets/prerequisites/wsl2/install-wsl.jpg)
 
 > [!NOTE]
-> By default, Ubuntu will be installed, but we can install any distro of your choice. We'll see later how.
+> By default, Ubuntu will be installed, but we can install any distro of our choice. We'll see later how.
 
 - You can also check the installed distributions:
   ```sh
@@ -51,16 +51,20 @@ Before setting up WSL 2, make sure you have:
 
 - Update and upgrade system packages:
   ```sh
+  # Update System Packages
   sudo apt update && sudo apt upgrade -y
   ```
 
 - You can verify the Linux distribution and kernel using:
   ```sh
+  # Verify Kernel and Ubuntu Version
   cat /etc/os-release
   uname -r
 
   # The kernel information should indicate that the environment is running under WSL 2.
   ```
+  ![os-details](/assets/prerequisites/os-requirements.jpg)
+  
 - And, that's it! You are ready to use the WSL 2 Linux environment for the DevOps stack.
 
 ### Install a Specific Linux Distro
