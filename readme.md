@@ -2,7 +2,7 @@
 
 A hands-on DevOps learning environment designed to explore, configure, automate, deploy, monitor, and troubleshoot modern software delivery infrastructure.
 
-This repository brings together a collection of DevOps tools, installation scripts, configuration files, practical examples, and setup guides in one place. It provides a structured environment for learning how different components work individually and how they integrate into a broader DevOps workflow.
+This repository brings together a collection of DevOps tools, installation scripts, configuration files, and setup guides in one place. It provides a structured environment for learning how different components work individually and how they integrate into a broader DevOps workflow.
 
 From application development and CI/CD pipelines to containerization, Kubernetes, GitOps, infrastructure automation, and observability, this project provides a practical foundation for experimenting with commonly used DevOps technologies.
 
@@ -35,7 +35,6 @@ From application development and CI/CD pipelines to containerization, Kubernetes
 devops-platform-stack/
 ├── assets/       # Images, diagrams, and other visual assets
 ├── config/       # Configuration files for platform tools and services
-├── examples/     # Sample configurations and practical usage examples
 ├── docs/         # Setup guides, prerequisites, and verification steps
 ├── scripts/      # Installation, automation, maintenance, and cleanup scripts
 ├── .gitignore    # Git ignore rules
@@ -156,21 +155,6 @@ The `config/` directory organizes configuration files by platform component.
   ```
 
 Use the configuration files and accompanying documentation to understand how individual components are configured and integrated.
-
-### 4. Explore Practical Examples
-
-The `examples/` directory provides sample configurations and reference implementations for supported components.
-  ```sh
-  # From the repository root
-
-  # Jenkins examples
-  cd examples/jenkins/
-
-  # Kubernetes examples
-  cd ../kubernetes/
-  ```
-
-Use these examples as starting points for experimentation, troubleshooting, and further customization.
 
 
 ### 📚 Learning Outcomes

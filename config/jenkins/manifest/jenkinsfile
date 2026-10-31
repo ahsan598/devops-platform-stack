@@ -1,0 +1,225 @@
+pipeline {
+
+    // Define the agent for the pipeline (any available agent)
+    agent any
+
+    // Define the required tools for the pipeline
+    tools {
+        jdk 'jdk21'
+        maven 'maven3'
+    }
+
+    // Define environment variables for the pipeline
+    environment {
+
+        // Application Configuration
+        APP_NAME         = 'your-app-name'
+        CONTAINER_NAME    = 'your-container-name'
+
+        // Git Repository Configuration
+        GIT_URL          = 'https://github.com/your-org/your-repo-name.git'
+        GIT_BRANCH       = 'main'
+        GIT_CREDENTIAL_ID = 'github-token'
+
+        // Docker Configuration
+        IMAGE_NAME       = 'your_dockerhub_username/your-app-name'
+        DOCKER_CRED_ID   = 'docker-cred'
+
+        // Kubernetes Configuration
+        APP_NAMESPACE    = 'your-app-namespace'
+        K8S_MANIFEST     = 'k8s/deployment.yaml'
+        K8S_CREDENTIAL_ID = 'k8s-cred'
+        K8S_SERVER_URL   = 'https://your-kubernetes-api-server:6443'
+        
+        // Tools & Plugins Configuration
+        SONAR_SERVER     = 'sonar-server'
+        MAVEN_SETTINGS   = 'global-maven'
+        DEPENDENCY_CHECK = 'DP-Check'
+    }
+
+    // Define options for the pipeline
+    options {
+        timeout(time: 10, unit: 'MINUTES') 
+        buildDiscarder(logRotator(numToKeepStr: '3'))
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    // Define the stages of the pipeline
+    stages {
+
+        // 1. Checkout Source Code from Git Repository
+        stage('Git Checkout') { 
+            steps {
+                echo 'Checking out source code from GitHub...'
+                git branch: "${env.GIT_BRANCH}",
+                    url: "${env.GIT_URL}",
+                    credentialsId: "${env.GIT_CREDENTIAL_ID}"
+            }
+        }
+
+        // 2.  Code Compilation & Unit Testing ("-DskipTests=true" can be used to skip tests during packaging)
+        stage('Code Compile & Test') {
+            steps {
+                echo 'Compiling Java application and executing unit tests...'
+                sh 'mvn clean test'
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true,
+                        testResults: '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        // 3. Static Code Analysis with SonarQube
+        stage('SonarQube Analysis') {
+            steps {
+                echo 'Starting SonarQube code analysis...'
+                withSonarQubeEnv("${env.SONAR_SERVER}") {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
+
+        // 4. Quality Gate Check (Fail the Build if Quality Gate Fails)
+        stage('Quality Gate') {
+            steps {
+                echo 'Waiting for SonarQube Quality Gate result...'
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        // 5. OWASP Dependency Check for Vulnerability Scanning
+        stage('OWASP Dependency Check') {
+            steps {
+                echo 'Scanning project dependencies for vulnerabilities...'
+                dependencyCheck(additionalArguments: '--scan . \
+                        --format HTML \
+                        --out dependency-check-report.html \
+                        --failOnCVSS 7',
+                        odcInstallation: "${env.DEPENDENCY_CHECK}")
+            }
+        }
+
+        // 6. Build & Publish Artifact to Repository (e.g., Nexus / Artifactory)
+        stage('Build & Push Artifact') {
+            steps {
+                echo 'Building and publishing application artifact to Nexus...'
+                    withMaven(globalMavenSettingsConfig: "${env.MAVEN_SETTINGS}",
+                        traceability: true) {
+                            sh 'mvn clean deploy'
+                        }
+            }
+        }
+
+        // 7. Docker Build & Trivy Security Scan
+        stage('Docker Build & Scan') {
+            steps {
+                echo 'Building Docker image...'
+                script {
+                    sh 'docker build -t ${env.IMAGE_NAME}:${BUILD_NUMBER} -f Dockerfile .'
+
+                    echo 'Running Trivy vulnerability scan...'
+                    sh 'trivy image --format table --output trivy-image-report.txt \
+                    ${env.IMAGE_NAME}:${BUILD_NUMBER}'
+                }
+            }
+        }
+
+        // 8. Push Docker Image to Container Registry (e.g., DockerHub / ECR / GCR)
+        stage('Push Image to Registry') {
+            steps {
+                script {
+                    echo 'Pushing Docker image to DockerHub...'
+                    withDockerRegistry(credentialsId: "${env.DOCKER_CRED_ID}") {
+                        sh 'docker push ${env.IMAGE_NAME}:${BUILD_NUMBER}'
+                    }
+                }
+            }
+        }
+
+        // 9. Kubernetes Deployment
+        stage('Kubernetes Deploy') {
+            steps {
+                script {
+                    echo "Deploying ${env.IMAGE_NAME}:${BUILD_NUMBER} to Kubernetes..."
+                    withKubeConfig(
+                        clusterName: 'kubernetes',
+                        credentialsId: "${env.K8S_CREDENTIAL_ID}",
+                        namespace: "${env.APP_NAMESPACE}",
+                        serverUrl: "${env.K8S_SERVER_URL}",
+                        restrictKubeConfigAccess: true) {
+
+                        // Create Kubernetes Namespace (if it doesn't exist) and Apply Deployment Manifest
+                        sh 'kubectl create namespace ${env.APP_NAMESPACE}'
+
+                        // Apply ConfigMap and Secret Manifests (if applicable)
+                        // sh 'kubectl apply -f k8s/02-configmap.yaml -n ${env.APP_NAMESPACE}'
+                        // sh 'kubectl apply -f k8s/03-secret.yaml -n ${env.APP_NAMESPACE}'
+                        
+                        sh 'kubectl apply -f ${env.K8S_MANIFEST} -n ${env.APP_NAMESPACE}'
+
+                        // Update the Deployment with the New Docker Image
+                        sh 'kubectl set image deployment/${env.APP_NAME} \
+                        ${env.CONTAINER_NAME}=${env.IMAGE_NAME}:${BUILD_NUMBER} \
+                        -n ${env.APP_NAMESPACE}'
+
+                        // Wait for the Deployment to Complete
+                        echo "Waiting for deployment rollout to complete..."
+                        sh 'kubectl rollout status deployment/${env.APP_NAME} \
+                        -n ${env.APP_NAMESPACE} --timeout=120s'
+                    }
+                }
+            }
+        }
+
+        // 10. Verify the Deployment (Check Pods & Services in Kubernetes Namespace)
+        stage('Verify the Deployment') {
+            steps {
+                echo 'Verifying Kubernetes deployment...'
+                withKubeConfig(
+                    clusterName: 'kubernetes',
+                    credentialsId: "${env.K8S_CREDENTIAL_ID}",
+                    namespace: "${env.APP_NAMESPACE}",
+                    serverUrl: "${env.K8S_SERVER_URL}",
+                    restrictKubeConfigAccess: true) {
+                        sh 'kubectl get pods -n ${env.APP_NAMESPACE}'
+                        sh 'kubectl get svc -n ${env.APP_NAMESPACE}'
+                    }
+            }
+        }
+    }
+
+    // Define post-build actions for the pipeline
+    post {
+
+        // Always execute these steps regardless of build success or failure
+        always {
+
+            // Archive Trivy Security Scan Report & Dependency Check Report
+            echo 'Archiving security scan reports...'
+            archiveArtifacts(
+                artifacts: '**/dependency-check-report.html, **/trivy-image-report.txt',
+                allowEmptyArchive: true)
+            
+            // Clean up local Docker images to free up space
+            echo 'Cleaning up local Docker images...'
+            sh 'docker rmi ${env.IMAGE_NAME}:${BUILD_NUMBER} || true'
+
+            cleanWs()
+        }
+        
+        // Execute these steps only if the build is successful
+        success {
+            echo "Build #${BUILD_NUMBER} deployed successfully to Kubernetes namespace '${env.APP_NAMESPACE}'!"
+        }
+        
+        // Execute these steps only if the build fails
+        failure {
+            echo "Build #${BUILD_NUMBER} Failed during build or Kubernetes deployment!"
+        }
+    }
+}
