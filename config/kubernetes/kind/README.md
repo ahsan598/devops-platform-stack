@@ -3,7 +3,7 @@
 This folder contains the configuration and operational guides for provisioning and maintaining a local **4-node Kubernetes** cluster using **KIND (Kubernetes in Docker)**.
 
 ### 🏛️ Cluster Topology
-The cluster simulates a production-grade topology locally on WSL2/Linux:
+The cluster simulates a topology locally on WSL2/Linux:
 - **1 Control-Plane Node:** Manages cluster state, API server, and scheduling.
 - **3 Worker Nodes:** Executes workloads (Jenkins builds, Observability agents, and deployed microservices).
 - **Port Forwarding:** Binds host ports `30000-32767` directly to node ports, allowing direct access to cluster services (`Argo CD`, `Grafana`, `Prometheus`) via localhost.
@@ -55,7 +55,7 @@ Check that all 4 nodes are in the `Ready` state:
 ```sh
 kubectl get nodes -o wide
 ```
-![kind](/assets/kind/kind-nodes.jpg)
+![kind](/assets/kubernetes/kind-nodes.jpg)
 
 **3. Manage Contexts**
 ```sh

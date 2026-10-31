@@ -1,5 +1,6 @@
 # 🛠️ DevOps Workbench
-A production-grade local DevOps lab environment featuring **Jenkins (DInD), SonarQube, Nexus, a Multi-Node KIND Kubernetes Cluster, Observability (Prometheus, Grafana, Loki, Fluent Bit), and GitOps (Argo CD)**.
+
+A **local DevOps learning lab** on WSL2/Linux featuring Jenkins (Docker-in-Docker), SonarQube, Nexus Repository Manager, a multi-node KIND Kubernetes cluster, observability tools (Prometheus, Grafana, Loki, Fluent Bit), and GitOps with Argo CD.
 
 Designed for hands-on practice with modern CI/CD pipelines, Infrastructure as Code, continuous testing, and cloud-native observability on **WSL2 / Linux.**
 
@@ -22,8 +23,8 @@ Each component in `config/` handles a specific layer of the platform architectur
 - **Nexus Repository Manager:** Local artifact storage serving as a private Docker registry, Helm repo, and build cache to optimize network usage.
 
 **2. Multi-Node Kubernetes Topology (`config/kubernetes/`)**
-- **KIND (Kubernetes in Docker):** Provisions a 4-node cluster (1 Control Plane + 3 Worker Nodes) simulating production-like Kubernetes topologies locally.
-- **Kubeadm:** Provisions a multi-node production-grade cluster (1 Control Plane + 2 Worker Nodes) on AWS EC2 instances via Terraform for realistic cloud deployments.
+- **KIND (Kubernetes in Docker):** Provisions a 4-node Kubernetes cluster (1 Control Plane + 3 Worker Nodes) inside Docker containers to practice multi-node deployments, scheduling, networking, and cluster operations.
+- **Kubeadm:** Provisions a multi-node Kubernetes cluster (1 Control Plane + 2 Worker Nodes) on cloud infrastructure using Terraform.
 
 **3. Observability Ecosystem (`config/observability/`)**
 - **Prometheus & Grafana (kube-prometheus-stack):** End-to-end metrics collection, alerting, and pre-built dashboards for host, container, and cluster-level monitoring.
